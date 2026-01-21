@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "mprocs",
     "dev:expo": "expo start -c",
+    "dev:db": "bunx --bun convex dev",
     "lint": "biome check --write --unsafe",
     "clean": "rm -rf .expo node_modules",
     "android": "expo start -c --android",
@@ -12,6 +13,8 @@
     "web": "expo start -c --web"
   },
   "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.90",
     "@react-navigation/native": "^7.0.0",
     "@rn-primitives/accordion": "^1.2.0",
     "@rn-primitives/alert-dialog": "^1.2.0",
@@ -39,6 +42,7 @@
     "@rn-primitives/tooltip": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.31.5",
     "expo": "~54.0.29",
     "expo-constants": "~18.0.12",
     "expo-haptics": "~15.0.8",

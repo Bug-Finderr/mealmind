@@ -1,5 +1,5 @@
 procs:
   expo:
-    shell: bun expo:dev
-  # convex:
-  #   shell: bunx --bun convex dev
+    shell: bun dev:expo
+  convex:
+    shell: bun dev:db
