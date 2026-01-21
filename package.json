@@ -1,13 +1,15 @@
 {
-  "name": "minimal",
+  "name": "mealmind",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "dev": "expo start -c",
+    "dev": "mprocs",
+    "dev:expo": "expo start -c",
+    "lint": "biome check --write --unsafe",
+    "clean": "rm -rf .expo node_modules",
     "android": "expo start -c --android",
     "ios": "expo start -c --ios",
-    "web": "expo start -c --web",
-    "clean": "rm -rf .expo node_modules"
+    "web": "expo start -c --web"
   },
   "dependencies": {
     "@react-navigation/native": "^7.0.0",
@@ -66,9 +68,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@biomejs/biome": "2.3.11",
+    "@types/bun": "latest",
     "@types/react": "~19.1.10",
-    "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.6.14",
+    "lefthook": "^2.0.15",
+    "mprocs": "^0.8.3",
     "typescript": "~5.9.2"
   },
   "private": true

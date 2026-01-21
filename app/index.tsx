@@ -1,19 +1,18 @@
-import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
-import { Text } from '@/components/ui/text';
-import { Link, Stack } from 'expo-router';
-import { MoonStarIcon, StarIcon, SunIcon } from 'lucide-react-native';
-import * as React from 'react';
-import { Image, type ImageStyle, View } from 'react-native';
-import { Uniwind, useUniwind } from 'uniwind';
+import { Link, Stack } from "expo-router";
+import { MoonStarIcon, StarIcon, SunIcon } from "lucide-react-native";
+import { Image, type ImageStyle, View } from "react-native";
+import { Uniwind, useUniwind } from "uniwind";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
 
 const LOGO = {
-  light: require('@/assets/images/react-native-reusables-light.png'),
-  dark: require('@/assets/images/react-native-reusables-dark.png'),
+  light: require("@/assets/images/react-native-reusables-light.png"),
+  dark: require("@/assets/images/react-native-reusables-dark.png"),
 };
 
 const SCREEN_OPTIONS = {
-  title: 'React Native Reusables',
+  title: "React Native Reusables",
   headerTransparent: true,
   headerRight: () => <ThemeToggle />,
 };
@@ -30,12 +29,16 @@ export default function Screen() {
     <>
       <Stack.Screen options={SCREEN_OPTIONS} />
       <View className="flex-1 items-center justify-center gap-8 p-4">
-        <Image source={LOGO[theme ?? 'light']} style={IMAGE_STYLE} resizeMode="contain" />
+        <Image
+          source={LOGO[theme ?? "light"]}
+          style={IMAGE_STYLE}
+          resizeMode="contain"
+        />
         <View className="gap-2 p-4">
-          <Text className="ios:text-foreground text-muted-foreground font-mono text-sm">
+          <Text className="font-mono ios:text-foreground text-muted-foreground text-sm">
             1. Edit <Text variant="code">app/index.tsx</Text> to get started.
           </Text>
-          <Text className="ios:text-foreground text-muted-foreground font-mono text-sm">
+          <Text className="font-mono ios:text-foreground text-muted-foreground text-sm">
             2. Save to see your changes instantly.
           </Text>
         </View>
@@ -45,7 +48,10 @@ export default function Screen() {
               <Text>Browse the Docs</Text>
             </Button>
           </Link>
-          <Link href="https://github.com/founded-labs/react-native-reusables" asChild>
+          <Link
+            href="https://github.com/founded-labs/react-native-reusables"
+            asChild
+          >
             <Button variant="ghost">
               <Text>Star the Repo</Text>
               <Icon as={StarIcon} />
@@ -66,7 +72,7 @@ function ThemeToggle() {
   const { theme } = useUniwind();
 
   function toggleTheme() {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    const newTheme = theme === "dark" ? "light" : "dark";
     Uniwind.setTheme(newTheme);
   }
 
@@ -75,8 +81,9 @@ function ThemeToggle() {
       onPressIn={toggleTheme}
       size="icon"
       variant="ghost"
-      className="ios:size-9 web:mx-4 rounded-full">
-      <Icon as={THEME_ICONS[theme ?? 'light']} className="size-5" />
+      className="web:mx-4 ios:size-9 rounded-full"
+    >
+      <Icon as={THEME_ICONS[theme ?? "light"]} className="size-5" />
     </Button>
   );
 }
