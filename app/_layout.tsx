@@ -3,10 +3,11 @@ import "@/global.css";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
-import { ConvexReactClient } from "convex/react";
-import { Stack } from "expo-router";
+import { ConvexReactClient, useConvexAuth } from "convex/react";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { Platform } from "react-native";
 import { useUniwind } from "uniwind";
 import { NAV_THEME } from "@/lib/theme";
@@ -26,9 +27,32 @@ export {
   ErrorBoundary,
 } from "expo-router";
 
-export default function RootLayout() {
+function RootLayoutNav() {
   const { theme } = useUniwind();
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (isAuthenticated && inAuthGroup) router.replace("/(tabs)");
+    else if (!isAuthenticated && !inAuthGroup)
+      router.replace("/(auth)/sign-in");
+  }, [isAuthenticated, isLoading, segments, router]);
+
+  return (
+    <ThemeProvider value={NAV_THEME[theme ?? "light"]}>
+      <StatusBar style={theme === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }} />
+      <PortalHost />
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
   return (
     <ConvexAuthProvider
       client={convex}
@@ -38,11 +62,7 @@ export default function RootLayout() {
           : undefined
       }
     >
-      <ThemeProvider value={NAV_THEME[theme ?? "light"]}>
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-        <Stack />
-        <PortalHost />
-      </ThemeProvider>
+      <RootLayoutNav />
     </ConvexAuthProvider>
   );
 }
