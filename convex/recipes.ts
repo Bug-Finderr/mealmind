@@ -55,6 +55,21 @@ export const generate = action({
   },
 });
 
+export const create = mutation({
+  args: { recipe: recipeValidator },
+  handler: async (ctx, { recipe }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    return ctx.db.insert("recipes", {
+      userId,
+      ...recipe,
+      aiGenerated: true,
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const saveInternal = internalMutation({
   args: {
     userId: v.id("users"),
@@ -94,6 +109,21 @@ export const getById = query({
     if (!recipe || recipe.userId !== userId) return null;
 
     return recipe;
+  },
+});
+
+export const update = mutation({
+  args: { id: v.id("recipes"), recipe: recipeValidator },
+  handler: async (ctx, { id, recipe }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const existing = await ctx.db.get(id);
+    if (!existing || existing.userId !== userId) {
+      throw new Error("Not authorized");
+    }
+
+    await ctx.db.patch(id, recipe);
   },
 });
 
