@@ -1,8 +1,9 @@
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Link, Stack, useRouter } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { Loader2 } from "lucide-react-native";
 import * as React from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,6 @@ function getErrorMessage(error: unknown): string {
 
 export default function SignInScreen() {
   const { signIn } = useAuthActions();
-  const router = useRouter();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -46,10 +46,8 @@ export default function SignInScreen() {
 
     try {
       await signIn("password", { email, password, flow: "signIn" });
-      router.replace("/(tabs)");
     } catch (err) {
       setError(getErrorMessage(err));
-    } finally {
       setIsLoading(false);
     }
   }
@@ -111,6 +109,16 @@ export default function SignInScreen() {
                 )}
                 <Text>{isLoading ? "Signing in..." : "Sign In"}</Text>
               </Button>
+
+              <View className="flex-row items-center gap-4">
+                <View className="h-px flex-1 bg-border" />
+                <Text variant="muted" className="text-xs">
+                  OR
+                </Text>
+                <View className="h-px flex-1 bg-border" />
+              </View>
+
+              <GoogleSignInButton onError={setError} />
             </View>
 
             <View className="flex-row items-center justify-center gap-1">

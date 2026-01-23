@@ -8,7 +8,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import { useUniwind } from "uniwind";
 import { NAV_THEME } from "@/lib/theme";
 
@@ -42,6 +42,13 @@ function RootLayoutNav() {
     else if (!isAuthenticated && !inAuthGroup)
       router.replace("/(auth)/sign-in");
   }, [isAuthenticated, isLoading, segments, router]);
+
+  if (isLoading)
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" />
+      </View>
+    );
 
   return (
     <ThemeProvider value={NAV_THEME[theme ?? "light"]}>
