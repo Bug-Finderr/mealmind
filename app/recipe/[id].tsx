@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
+  ChefHat,
   Clock,
   Heart,
   Pencil,
@@ -11,6 +12,7 @@ import {
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { RecipeEditor } from "@/components/recipe-editor";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
@@ -175,6 +177,17 @@ export default function RecipeScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Start Cooking Button */}
+      <View className="border-border border-t p-5">
+        <Button
+          className="h-14"
+          onPress={() => router.push(`/recipe/cook?id=${id}`)}
+        >
+          <Icon as={ChefHat} className="size-5 text-primary-foreground" />
+          <Text className="font-semibold text-base">Start Cooking</Text>
+        </Button>
+      </View>
 
       {/* Recipe Editor Modal */}
       <RecipeEditor
