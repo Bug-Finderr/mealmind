@@ -27,7 +27,6 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: "Settings",
-          headerShown: true,
           tabBarIcon: ({ color }) => (
             <Icon as={Settings} className="size-5" color={color} />
           ),

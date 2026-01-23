@@ -54,14 +54,15 @@
 
 | ID | Feature | Description | Acceptance Criteria |
 |----|---------|-------------|---------------------|
-| ~~F1~~ | Ingredient Input (Text) | Add ingredients by typing | User can add/remove ingredients, see list |
-| ~~F2~~ | AI Recipe Generation | Generate recipe from ingredients and show | Returns complete recipe with steps, times |
-| ~~F3~~ | Ingredient Input (Photo) | Take photo, AI extracts ingredients | Photo → AI → editable ingredient list |
-| ~~F4~~ | Recipe Editor | Edit AI recipe before saving | Can modify title, ingredients, steps |
-| ~~F5~~ | Favorites | Save recipes to collection | Add/remove from favorites, view list |
-| ~~F6~~ | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
-| F7 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
-| F8 | User Auth | Sign up / login | Email + OAuth (Google) |
+| ~~F1~~ | User Auth | Sign up / login | Email + OAuth (Google) |
+| ~~F2~~ | Ingredient Input (Text) | Add ingredients by typing | User can add/remove ingredients, see list |
+| ~~F3~~ | AI Recipe Generation | Generate recipe from ingredients and show | Returns complete recipe with steps, times |
+| ~~F4~~ | Ingredient Input (Photo) | Take photo, AI extracts ingredients | Photo → AI → editable ingredient list |
+| ~~F5~~ | Recipe Editor | Edit AI recipe before saving | Can modify title, ingredients, steps |
+| ~~F6~~ | Favorites | Save recipes to collection | Add/remove from favorites, view list |
+| ~~F7~~ | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
+| ~~F8~~ | User Profile | View/edit profile, sign out | Display name/email, edit name, sign out button |
+| F9 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
 
 #### P1 - Stretch (If Time)
 
