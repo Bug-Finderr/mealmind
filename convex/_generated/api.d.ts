@@ -10,6 +10,7 @@
 
 import type * as ai from "../ai.js";
 import type * as auth from "../auth.js";
+import type * as favorites from "../favorites.js";
 import type * as http from "../http.js";
 import type * as ingredients from "../ingredients.js";
 import type * as recipes from "../recipes.js";
@@ -23,6 +24,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   ai: typeof ai;
   auth: typeof auth;
+  favorites: typeof favorites;
   http: typeof http;
   ingredients: typeof ingredients;
   recipes: typeof recipes;

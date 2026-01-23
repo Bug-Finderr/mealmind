@@ -11,6 +11,7 @@ import {
 } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ExtractedIngredientsModal } from "@/components/extracted-ingredients-modal";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -21,6 +22,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -110,7 +112,7 @@ export default function HomeScreen() {
   const hasIngredients = ingredients.length > 0;
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       {/* Header */}
       <View className="px-5 pt-4 pb-2">
         <Text variant="h3">What's in your kitchen?</Text>

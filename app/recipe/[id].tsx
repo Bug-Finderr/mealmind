@@ -1,6 +1,13 @@
 import { useMutation, useQuery } from "convex/react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Clock, Pencil, Timer, Users } from "lucide-react-native";
+import {
+  ArrowLeft,
+  Clock,
+  Heart,
+  Pencil,
+  Timer,
+  Users,
+} from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { RecipeEditor } from "@/components/recipe-editor";
@@ -19,7 +26,12 @@ export default function RecipeScreen() {
     api.recipes.getById,
     id ? { id: id as Id<"recipes"> } : "skip",
   );
+  const isFavorited = useQuery(
+    api.favorites.isFavorited,
+    id ? { recipeId: id as Id<"recipes"> } : "skip",
+  );
   const updateRecipe = useMutation(api.recipes.update);
+  const toggleFavorite = useMutation(api.favorites.toggle);
 
   const handleSave = async (data: RecipeData) => {
     if (!id) return;
@@ -45,13 +57,29 @@ export default function RecipeScreen() {
         >
           <Icon as={ArrowLeft} className="size-5" />
         </Pressable>
-        <Pressable
-          onPress={() => setShowEditor(true)}
-          className="size-10 items-center justify-center rounded-full bg-background/80"
-          style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 }}
-        >
-          <Icon as={Pencil} className="size-5" />
-        </Pressable>
+        <View className="flex-row gap-2">
+          <Pressable
+            onPress={() =>
+              id && toggleFavorite({ recipeId: id as Id<"recipes"> })
+            }
+            className="size-10 items-center justify-center rounded-full bg-background/80"
+            style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 }}
+          >
+            <Icon
+              as={Heart}
+              className="size-5"
+              fill={isFavorited ? "#ef4444" : "transparent"}
+              color={isFavorited ? "#ef4444" : undefined}
+            />
+          </Pressable>
+          <Pressable
+            onPress={() => setShowEditor(true)}
+            className="size-10 items-center justify-center rounded-full bg-background/80"
+            style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 }}
+          >
+            <Icon as={Pencil} className="size-5" />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView

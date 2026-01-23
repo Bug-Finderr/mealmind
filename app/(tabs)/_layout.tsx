@@ -1,20 +1,25 @@
 import { Tabs } from "expo-router";
-import { Home, Settings } from "lucide-react-native";
+import { Heart, Home, Settings } from "lucide-react-native";
 import { Icon } from "@/components/ui/icon";
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: true,
-      }}
-    >
+    <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <Icon as={Home} className="size-5" style={{ color }} />
+            <Icon as={Home} className="size-5" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: "Favorites",
+          tabBarIcon: ({ color }) => (
+            <Icon as={Heart} className="size-5" color={color} />
           ),
         }}
       />
@@ -22,8 +27,9 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: "Settings",
+          headerShown: true,
           tabBarIcon: ({ color }) => (
-            <Icon as={Settings} className="size-5" style={{ color }} />
+            <Icon as={Settings} className="size-5" color={color} />
           ),
         }}
       />

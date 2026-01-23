@@ -36,6 +36,7 @@ const schema = defineSchema({
     servings: v.number(),
     tags: v.array(v.string()),
     aiGenerated: v.boolean(),
+    favorited: v.optional(v.boolean()),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
