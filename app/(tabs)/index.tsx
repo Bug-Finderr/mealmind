@@ -24,6 +24,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [input, setInput] = useState("");
+  const [userPrompt, setUserPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedIngredients, setExtractedIngredients] = useState<string[]>(
@@ -58,7 +59,10 @@ export default function HomeScreen() {
     setIsGenerating(true);
     try {
       const ingredientNames = ingredients.map((i) => i.name);
-      const recipeId = await generateRecipe({ ingredients: ingredientNames });
+      const recipeId = await generateRecipe({
+        ingredients: ingredientNames,
+        userPrompt: userPrompt.trim(),
+      });
       router.push(`/recipe/${recipeId}`);
     } catch (error) {
       console.error("Failed to generate recipe:", error);
@@ -208,6 +212,21 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      {/* Context Input */}
+      {hasIngredients && (
+        <View className="px-5 pb-2">
+          <Input
+            className="min-h-20"
+            placeholder="What are you in the mood for? (optional)&#10;e.g. quick dinner, comfort food, healthy..."
+            value={userPrompt}
+            onChangeText={setUserPrompt}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+        </View>
+      )}
 
       {/* Generate Button */}
       <View className="p-5">

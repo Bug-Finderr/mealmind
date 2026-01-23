@@ -69,11 +69,11 @@
 
 | ID | Feature | Description |
 |----|---------|-------------|
-| F10 | Explore Feed | Browse community recipes |
-| F11 | Recipe Sharing | Publish recipe publicly |
-| F12 | Voting | Upvote/downvote recipes |
-| F13 | Interest Tags | Filter feed by preferences |
-| F14 | User Stats | View cooking analytics |
+| F11 | Explore Feed | Browse community recipes |
+| F12 | Recipe Sharing | Publish recipe publicly |
+| F13 | Voting | Upvote/downvote recipes |
+| F14 | Interest Tags | Filter feed by preferences |
+| F15 | User Stats | View cooking analytics |
 
 ### 4.2 Non-Functional Requirements
 

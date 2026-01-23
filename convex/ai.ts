@@ -77,8 +77,9 @@ export const generateRecipe = internalAction({
   args: {
     ingredients: v.array(v.string()),
     userId: v.optional(v.id("users")),
+    userPrompt: v.optional(v.string()),
   },
-  handler: async (ctx, { ingredients, userId }) => {
+  handler: async (ctx, { ingredients, userId, userPrompt }) => {
     const model = await resolveModel(ctx, userId, "recipeGenerationModel");
 
     const schema = z.object({
@@ -103,11 +104,15 @@ export const generateRecipe = internalAction({
       tags: z.array(z.string()),
     });
 
+    const userPreferences = userPrompt
+      ? `\n\nUser preferences: ${userPrompt}`
+      : "";
+
     const { output } = await generateText({
       model,
       system:
-        "You are a helpful cooking assistant. Create a delicious, practical recipe using the provided ingredients. Include precise measurements (in metric units) and clear step-by-step instructions. Add timer durations (in minutes) for steps that need timing like boiling, baking, or simmering. Keep it achievable for home cooks.",
-      prompt: `Create a recipe using these ingredients: ${ingredients.join(", ")}`,
+        "You are a helpful cooking assistant. Create a delicious, practical recipe using the provided ingredients. Include precise measurements (in metric units) and clear step-by-step instructions. Add timer durations (in minutes) for steps that need timing like boiling, baking, or simmering. Keep it achievable for home cooks. If the user provides preferences or mood context, tailor the recipe accordingly.",
+      prompt: `Create a recipe using these ingredients: ${ingredients.join(", ")}${userPreferences}`,
       output: Output.object({ schema }),
     });
 

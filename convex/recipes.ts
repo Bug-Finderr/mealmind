@@ -28,14 +28,18 @@ const recipeValidator = v.object({
 });
 
 export const generate = action({
-  args: { ingredients: v.array(v.string()) },
-  handler: async (ctx, { ingredients }): Promise<Id<"recipes">> => {
+  args: {
+    ingredients: v.array(v.string()),
+    userPrompt: v.optional(v.string()),
+  },
+  handler: async (ctx, { ingredients, userPrompt }): Promise<Id<"recipes">> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
     const recipe: RecipeData = await ctx.runAction(internal.ai.generateRecipe, {
       ingredients,
       userId,
+      userPrompt,
     });
 
     const recipeId: Id<"recipes"> = await ctx.runMutation(
