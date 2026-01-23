@@ -3,7 +3,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
   Camera,
-  Check,
   ChefHat,
   Loader2,
   Plus,
@@ -11,7 +10,8 @@ import {
   X,
 } from "lucide-react-native";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { ExtractedIngredientsModal } from "@/components/extracted-ingredients-modal";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -27,11 +27,7 @@ export default function HomeScreen() {
   const [extractedIngredients, setExtractedIngredients] = useState<string[]>(
     [],
   );
-  const [selectedIngredients, setSelectedIngredients] = useState<Set<string>>(
-    new Set(),
-  );
   const [showModal, setShowModal] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
 
   const ingredients = useQuery(api.ingredients.list) ?? [];
   const addIngredient = useMutation(api.ingredients.add);
@@ -98,7 +94,6 @@ export default function HomeScreen() {
     try {
       const extracted = await extractIngredients({ imageBase64: base64 });
       setExtractedIngredients(extracted);
-      setSelectedIngredients(new Set(extracted));
       setShowModal(true);
     } catch (error) {
       console.error("Failed to extract ingredients:", error);
@@ -107,30 +102,9 @@ export default function HomeScreen() {
     }
   };
 
-  const toggleIngredient = (name: string) => {
-    setSelectedIngredients((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        next.add(name);
-      }
-      return next;
-    });
-  };
-
-  const handleAddExtracted = async () => {
-    setIsAdding(true);
-    try {
-      await Promise.all(
-        [...selectedIngredients].map((name) => addIngredient({ name })),
-      );
-      setShowModal(false);
-      setExtractedIngredients([]);
-      setSelectedIngredients(new Set());
-    } finally {
-      setIsAdding(false);
-    }
+  const handleAddExtracted = async (selected: string[]) => {
+    await Promise.all(selected.map((name) => addIngredient({ name })));
+    setExtractedIngredients([]);
   };
 
   const hasIngredients = ingredients.length > 0;
@@ -255,70 +229,12 @@ export default function HomeScreen() {
       </View>
 
       {/* Extraction Modal */}
-      <Modal
+      <ExtractedIngredientsModal
         visible={showModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowModal(false)}
-      >
-        <View className="flex-1 bg-background">
-          <View className="flex-row items-center justify-between border-border border-b px-5 py-4">
-            <Text variant="h4">Found Ingredients</Text>
-            <Pressable onPress={() => setShowModal(false)} hitSlop={8}>
-              <Icon as={X} className="size-6 text-muted-foreground" />
-            </Pressable>
-          </View>
-
-          <ScrollView className="flex-1 p-5">
-            <Text variant="muted" className="mb-4">
-              Tap to select ingredients to add
-            </Text>
-            <View className="gap-2">
-              {extractedIngredients.map((name) => {
-                const isSelected = selectedIngredients.has(name);
-                return (
-                  <Pressable
-                    key={name}
-                    onPress={() => toggleIngredient(name)}
-                    className={`flex-row items-center justify-between rounded-lg border p-4 ${
-                      isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-border"
-                    }`}
-                  >
-                    <Text className="capitalize">{name}</Text>
-                    {isSelected && (
-                      <Icon as={Check} className="size-5 text-primary" />
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollView>
-
-          <View className="border-border border-t p-5">
-            <Button
-              className="h-14"
-              onPress={handleAddExtracted}
-              disabled={selectedIngredients.size === 0 || isAdding}
-            >
-              {isAdding ? (
-                <Icon
-                  as={Loader2}
-                  className="size-5 animate-spin text-primary-foreground"
-                />
-              ) : (
-                <Icon as={Plus} className="size-5 text-primary-foreground" />
-              )}
-              <Text className="font-semibold text-base">
-                {isAdding
-                  ? "Adding..."
-                  : `Add ${selectedIngredients.size} Ingredient${selectedIngredients.size !== 1 ? "s" : ""}`}
-              </Text>
-            </Button>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowModal(false)}
+        ingredients={extractedIngredients}
+        onAdd={handleAddExtracted}
+      />
     </View>
   );
 }

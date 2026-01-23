@@ -55,24 +55,23 @@
 | ID | Feature | Description | Acceptance Criteria |
 |----|---------|-------------|---------------------|
 | ~~F1~~ | Ingredient Input (Text) | Add ingredients by typing | User can add/remove ingredients, see list |
-| ~~F2~~ | AI Recipe Generation | Generate recipe from ingredients | Returns complete recipe with steps, times |
+| ~~F2~~ | AI Recipe Generation | Generate recipe from ingredients and show | Returns complete recipe with steps, times |
 | ~~F3~~ | Ingredient Input (Photo) | Take photo, AI extracts ingredients | Photo → AI → editable ingredient list |
 | ~~F4~~ | Recipe Editor | Edit AI recipe before saving | Can modify title, ingredients, steps |
-| F5 | Recipe Detail View | Display full recipe | Shows all info, ingredients, steps |
-| F6 | Favorites | Save recipes to collection | Add/remove from favorites, view list |
-| F7 | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
-| F8 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
-| F9 | User Auth | Sign up / login | Email + OAuth (Google) |
+| F5 | Favorites | Save recipes to collection | Add/remove from favorites, view list |
+| F6 | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
+| F7 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
+| F8 | User Auth | Sign up / login | Email + OAuth (Google) |
 
 #### P1 - Stretch (If Time)
 
 | ID | Feature | Description |
 |----|---------|-------------|
-| F10 | Explore Feed | Browse community recipes |
-| F11 | Recipe Sharing | Publish recipe publicly |
-| F12 | Voting | Upvote/downvote recipes |
-| F13 | Interest Tags | Filter feed by preferences |
-| F14 | User Stats | View cooking analytics |
+| F9 | Explore Feed | Browse community recipes |
+| F10 | Recipe Sharing | Publish recipe publicly |
+| F11 | Voting | Upvote/downvote recipes |
+| F12 | Interest Tags | Filter feed by preferences |
+| F13 | User Stats | View cooking analytics |
 
 ### 4.2 Non-Functional Requirements
 

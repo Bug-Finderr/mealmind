@@ -1,18 +1,9 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import type { RecipeData } from "../types/recipe";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, internalMutation, mutation, query } from "./_generated/server";
-
-type RecipeData = {
-  title: string;
-  description: string;
-  ingredients: { name: string; amount: string; unit?: string }[];
-  steps: { order: number; instruction: string; timerMinutes?: number }[];
-  cookTimeMinutes: number;
-  servings: number;
-  tags: string[];
-};
 
 const recipeValidator = v.object({
   title: v.string(),
