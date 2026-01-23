@@ -1,23 +1,38 @@
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useMutation, useQuery } from "convex/react";
-import { Check, LogOut, Pencil, User, X } from "lucide-react-native";
+import { useStripe } from "@stripe/stripe-react-native";
+import { useAction, useMutation, useQuery } from "convex/react";
+import {
+  Check,
+  Crown,
+  LogOut,
+  Pencil,
+  Sparkles,
+  User,
+  X,
+} from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
+import { cn } from "@/lib/utils";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { signOut } = useAuthActions();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
   const user = useQuery(api.users.currentUser);
   const updateName = useMutation(api.users.updateName);
+  const upgradeToPremium = useMutation(api.users.upgradeToPremium);
+  const createPaymentIntent = useAction(api.stripe.createPaymentIntent);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   const startEditing = () => {
     setEditName(user?.name ?? "");
@@ -35,6 +50,49 @@ export default function SettingsScreen() {
     setIsEditing(false);
   };
 
+  const handleUpgrade = async () => {
+    try {
+      setIsUpgrading(true);
+
+      // 1. Get clientSecret from backend
+      const { clientSecret } = await createPaymentIntent();
+
+      if (!clientSecret) {
+        Alert.alert("Error", "Failed to create payment intent");
+        return;
+      }
+
+      // 2. Initialize PaymentSheet
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: "MealMind",
+      });
+
+      if (initError) {
+        Alert.alert("Error", initError.message);
+        return;
+      }
+
+      // 3. Present PaymentSheet
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        if (presentError.code !== "Canceled") {
+          Alert.alert("Error", presentError.message);
+        }
+        return;
+      }
+
+      // 4. Update user's premium status
+      await upgradeToPremium();
+      Alert.alert("Success", "Welcome to Premium!");
+    } catch (_error) {
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
   if (user === undefined)
     return (
       <View
@@ -44,6 +102,8 @@ export default function SettingsScreen() {
         <ActivityIndicator />
       </View>
     );
+
+  const isPremium = user?.isPremium;
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
@@ -58,6 +118,12 @@ export default function SettingsScreen() {
         <View className="size-24 items-center justify-center rounded-full bg-muted">
           <Icon as={User} className="size-12 text-muted-foreground" />
         </View>
+        {isPremium && (
+          <View className="mt-2 flex-row items-center gap-1">
+            <Icon as={Crown} className="size-4 text-yellow-500" />
+            <Text className="font-medium text-sm text-yellow-600">Premium</Text>
+          </View>
+        )}
       </View>
 
       {/* Info Cards */}
@@ -102,6 +168,62 @@ export default function SettingsScreen() {
         <View className="rounded-xl border border-border bg-card p-4">
           <Text className="mb-2 text-muted-foreground text-sm">Email</Text>
           <Text className="text-lg">{user?.email ?? "—"}</Text>
+        </View>
+
+        {/* Premium Section */}
+        <View
+          className={cn(
+            "rounded-xl border p-4",
+            isPremium
+              ? "border-yellow-500/30 bg-yellow-500/10"
+              : "border-border bg-card",
+          )}
+        >
+          <View className="mb-2 flex-row items-center gap-2">
+            <Icon
+              as={Sparkles}
+              className={cn(
+                "size-5",
+                isPremium ? "text-yellow-500" : "text-muted-foreground",
+              )}
+            />
+            <Text
+              className={cn(
+                "font-medium",
+                isPremium ? "text-yellow-600" : "text-foreground",
+              )}
+            >
+              Premium
+            </Text>
+          </View>
+
+          {isPremium ? (
+            <View className="flex-row items-center gap-2">
+              <Icon as={Check} className="size-4 text-green-500" />
+              <Text className="text-muted-foreground">
+                You have access to premium features!
+              </Text>
+            </View>
+          ) : (
+            <>
+              <Text className="mb-3 text-muted-foreground text-sm">
+                Unlock premium models for better recipe generation
+              </Text>
+              <Button onPress={handleUpgrade} disabled={isUpgrading}>
+                {isUpgrading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Icon
+                      as={Sparkles}
+                      className="size-4 text-primary-foreground"
+                    />
+                    <Text>Upgrade for $9.99</Text>
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </View>
       </View>
 

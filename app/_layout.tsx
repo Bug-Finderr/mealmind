@@ -3,6 +3,7 @@ import "@/global.css";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
+import { StripeProvider } from "@stripe/stripe-react-native";
 import { ConvexReactClient, useConvexAuth } from "convex/react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -61,15 +62,20 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <ConvexAuthProvider
-      client={convex}
-      storage={
-        Platform.OS === "android" || Platform.OS === "ios"
-          ? secureStorage
-          : undefined
-      }
+    <StripeProvider
+      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
+      urlScheme="mealmind"
     >
-      <RootLayoutNav />
-    </ConvexAuthProvider>
+      <ConvexAuthProvider
+        client={convex}
+        storage={
+          Platform.OS === "android" || Platform.OS === "ios"
+            ? secureStorage
+            : undefined
+        }
+      >
+        <RootLayoutNav />
+      </ConvexAuthProvider>
+    </StripeProvider>
   );
 }

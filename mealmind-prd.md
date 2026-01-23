@@ -62,17 +62,18 @@
 | ~~F6~~ | Favorites | Save recipes to collection | Add/remove from favorites, view list |
 | ~~F7~~ | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
 | ~~F8~~ | User Profile | View/edit profile, sign out | Display name/email, edit name, sign out button |
-| F9 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
+| ~~F9~~ | Payment Method | Add payment to unlock premium AI models | Stripe integration, unlock paid models |
+| F10 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
 
 #### P1 - Stretch (If Time)
 
 | ID | Feature | Description |
 |----|---------|-------------|
-| F9 | Explore Feed | Browse community recipes |
-| F10 | Recipe Sharing | Publish recipe publicly |
-| F11 | Voting | Upvote/downvote recipes |
-| F12 | Interest Tags | Filter feed by preferences |
-| F13 | User Stats | View cooking analytics |
+| F10 | Explore Feed | Browse community recipes |
+| F11 | Recipe Sharing | Publish recipe publicly |
+| F12 | Voting | Upvote/downvote recipes |
+| F13 | Interest Tags | Filter feed by preferences |
+| F14 | User Stats | View cooking analytics |
 
 ### 4.2 Non-Functional Requirements
 
