@@ -4,6 +4,7 @@ import { Modal, Pressable, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
+import { cn } from "@/lib/utils";
 
 type ExtractedIngredientsModalProps = {
   visible: boolean;
@@ -77,11 +78,12 @@ export function ExtractedIngredientsModal({
                 <Pressable
                   key={name}
                   onPress={() => toggle(name)}
-                  className={`flex-row items-center justify-between rounded-lg border p-4 ${
+                  className={cn(
+                    "flex-row items-center justify-between rounded-lg border p-4",
                     isSelected
                       ? "border-primary bg-primary/10"
-                      : "border-border"
-                  }`}
+                      : "border-border",
+                  )}
                 >
                   <Text className="capitalize">{name}</Text>
                   {isSelected && (

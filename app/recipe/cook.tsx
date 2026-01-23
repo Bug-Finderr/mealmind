@@ -16,6 +16,7 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { cn } from "@/lib/utils";
 
 const formatTime = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
@@ -122,13 +123,10 @@ export default function CookingModeScreen() {
             {recipe.steps.map(({ order }) => (
               <View
                 key={order}
-                className={`size-2.5 rounded-full ${
-                  order - 1 < currentStep
-                    ? "bg-primary"
-                    : order - 1 === currentStep
-                      ? "bg-primary"
-                      : "bg-muted"
-                }`}
+                className={cn(
+                  "size-2.5 rounded-full",
+                  order - 1 <= currentStep ? "bg-primary" : "bg-muted",
+                )}
               />
             ))}
           </View>
@@ -153,22 +151,20 @@ export default function CookingModeScreen() {
         {step?.timerMinutes && step.timerMinutes > 0 && (
           <View className="mt-8 items-center gap-4">
             <View
-              className={`rounded-2xl px-8 py-4 ${
-                timeLeft === 0 && !isRunning
-                  ? "bg-green-500/20"
-                  : isRunning
-                    ? "bg-primary/20"
-                    : "bg-muted/50"
-              }`}
+              className={cn(
+                "rounded-2xl px-8 py-4",
+                timeLeft === 0 && !isRunning && "bg-green-500/20",
+                isRunning && "bg-primary/20",
+                timeLeft > 0 && !isRunning && "bg-muted/50",
+              )}
             >
               <Text
-                className={`font-bold font-mono text-5xl ${
-                  timeLeft === 0 && !isRunning
-                    ? "text-green-600"
-                    : isRunning
-                      ? "text-primary"
-                      : "text-foreground"
-                }`}
+                className={cn(
+                  "font-bold font-mono text-5xl",
+                  timeLeft === 0 && !isRunning && "text-green-600",
+                  isRunning && "text-primary",
+                  timeLeft > 0 && !isRunning && "text-foreground",
+                )}
               >
                 {formatTime(timeLeft)}
               </Text>
