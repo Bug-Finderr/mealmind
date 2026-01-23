@@ -13,6 +13,7 @@ import type * as auth from "../auth.js";
 import type * as favorites from "../favorites.js";
 import type * as http from "../http.js";
 import type * as ingredients from "../ingredients.js";
+import type * as models from "../models.js";
 import type * as recipes from "../recipes.js";
 import type * as stripe from "../stripe.js";
 import type * as users from "../users.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   favorites: typeof favorites;
   http: typeof http;
   ingredients: typeof ingredients;
+  models: typeof models;
   recipes: typeof recipes;
   stripe: typeof stripe;
   users: typeof users;

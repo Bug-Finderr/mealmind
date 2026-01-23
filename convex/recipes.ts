@@ -35,6 +35,7 @@ export const generate = action({
 
     const recipe: RecipeData = await ctx.runAction(internal.ai.generateRecipe, {
       ingredients,
+      userId,
     });
 
     const recipeId: Id<"recipes"> = await ctx.runMutation(

@@ -1,14 +1,51 @@
+import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
-import { generateText, Output } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { generateText, type LanguageModel, Output } from "ai";
 import { v } from "convex/values";
 import { z } from "zod";
-import { action, internalAction } from "./_generated/server";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { type ActionCtx, action, internalAction } from "./_generated/server";
 
-const model = google("gemini-3-flash-preview");
+const DEFAULT_MODEL_KEY = "gemini-3-flash-preview";
+
+type ProviderFn = (provider: string) => LanguageModel;
+
+function getProvider(provider: string): ProviderFn {
+  switch (provider) {
+    case "openai":
+      return openai;
+    case "anthropic":
+      return anthropic;
+    default:
+      return google;
+  }
+}
+
+async function resolveModel(
+  ctx: ActionCtx,
+  userId: Id<"users"> | null | undefined,
+  preference: "imageAnalysisModel" | "recipeGenerationModel",
+): Promise<LanguageModel> {
+  if (!userId) return google(DEFAULT_MODEL_KEY);
+
+  const user = await ctx.runQuery(internal.users.getById, { userId });
+  const modelKey = user?.[preference] ?? DEFAULT_MODEL_KEY;
+  const config = await ctx.runQuery(internal.models.getByKey, {
+    key: modelKey,
+  });
+
+  return getProvider(config?.provider ?? "google")(modelKey);
+}
 
 export const extractIngredients = action({
   args: { imageBase64: v.string() },
-  handler: async (_, { imageBase64 }) => {
+  handler: async (ctx, { imageBase64 }) => {
+    const userId = await getAuthUserId(ctx);
+    const model = await resolveModel(ctx, userId, "imageAnalysisModel");
+
     const schema = z.object({
       ingredients: z
         .array(z.string())
@@ -21,10 +58,7 @@ export const extractIngredients = action({
         {
           role: "user",
           content: [
-            {
-              type: "image",
-              image: imageBase64,
-            },
+            { type: "image", image: imageBase64 },
             {
               type: "text",
               text: "Identify all food ingredients visible in this image. Return only the ingredient names (e.g., 'chicken breast', 'tomatoes', 'olive oil'). Be specific but concise. If you see packaged items, identify what's inside.",
@@ -40,8 +74,13 @@ export const extractIngredients = action({
 });
 
 export const generateRecipe = internalAction({
-  args: { ingredients: v.array(v.string()) },
-  handler: async (_, { ingredients }) => {
+  args: {
+    ingredients: v.array(v.string()),
+    userId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, { ingredients, userId }) => {
+    const model = await resolveModel(ctx, userId, "recipeGenerationModel");
+
     const schema = z.object({
       title: z.string(),
       description: z.string(),
@@ -66,7 +105,8 @@ export const generateRecipe = internalAction({
 
     const { output } = await generateText({
       model,
-      system: `You are a helpful cooking assistant. Create a delicious, practical recipe using the provided ingredients. Include precise measurements (in metric units) and clear step-by-step instructions. Add timer durations (in minutes) for steps that need timing like boiling, baking, or simmering. Keep it achievable for home cooks.`,
+      system:
+        "You are a helpful cooking assistant. Create a delicious, practical recipe using the provided ingredients. Include precise measurements (in metric units) and clear step-by-step instructions. Add timer durations (in minutes) for steps that need timing like boiling, baking, or simmering. Keep it achievable for home cooks.",
       prompt: `Create a recipe using these ingredients: ${ingredients.join(", ")}`,
       output: Output.object({ schema }),
     });

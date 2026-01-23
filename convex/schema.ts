@@ -16,7 +16,17 @@ const schema = defineSchema({
     isAnonymous: v.optional(v.boolean()),
     // Custom fields
     isPremium: v.optional(v.boolean()),
+    imageAnalysisModel: v.optional(v.string()),
+    recipeGenerationModel: v.optional(v.string()),
   }).index("email", ["email"]),
+
+  models: defineTable({
+    key: v.string(),
+    name: v.string(),
+    provider: v.string(),
+    tier: v.string(),
+    enabled: v.boolean(),
+  }).index("by_key", ["key"]),
 
   ingredients: defineTable({
     userId: v.id("users"),

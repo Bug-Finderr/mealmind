@@ -63,7 +63,7 @@
 | ~~F7~~ | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
 | ~~F8~~ | User Profile | View/edit profile, sign out | Display name/email, edit name, sign out button |
 | ~~F9~~ | Payment Method | Add payment to unlock premium AI models | Stripe integration, unlock paid models |
-| F10 | Model Selection | Choose AI model in settings | Persist preference, use for generation |
+| ~~F10~~ | Model Selection | Choose AI model in settings | Persist preference, use for generation |
 
 #### P1 - Stretch (If Time)
 
