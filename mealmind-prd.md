@@ -2,7 +2,6 @@
 
 **Version:** 1.0
 **Author:** @Bug-Finderr
-**Deadline:** January 21, 2026
 
 ---
 
@@ -69,11 +68,14 @@
 
 | ID | Feature | Description |
 |----|---------|-------------|
-| F11 | Explore Feed | Browse community recipes |
-| F12 | Recipe Sharing | Publish recipe publicly |
-| F13 | Voting | Upvote/downvote recipes |
-| F14 | Interest Tags | Filter feed by preferences |
-| F15 | User Stats | View cooking analytics |
+| F11 | App Refinement | Test and refine existing features |
+| F12 | Offline Support | View saved recipes offline |
+| F13 | Notifications | Reminders for cooking steps |
+| F14 | Explore Feed | Browse community recipes |
+| F15 | Recipe Sharing | Publish recipe publicly |
+| F16 | Voting | Upvote/downvote recipes |
+| F17 | Interest Tags | Filter feed by preferences |
+| F18 | User Stats | View cooking analytics |
 
 ### 4.2 Non-Functional Requirements
 
@@ -82,7 +84,6 @@
 | Recipe generation time | < 15 seconds |
 | Image analysis time | < 5 seconds |
 | App startup time | < 2 seconds |
-| Offline support | View saved recipes offline |
 | Platform support | iOS 15+, Android 10+ |
 
 ---
@@ -317,200 +318,6 @@ Timer countdown (notification when done)
                         └──────────────┘
 ```
 
-### 8.2 Schema Definition
-
-```typescript
-// convex/schema.ts
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
-
-export default defineSchema({
-  users: defineTable({
-    // Auth fields (managed by Convex Auth)
-    email: v.string(),
-    name: v.optional(v.string()),
-    avatarUrl: v.optional(v.string()),
-
-    // Preferences
-    preferredModel: v.optional(v.string()), // "gemini-flash" | "gpt-4o" | "claude-sonnet"
-    interestTags: v.optional(v.array(v.string())),
-
-    // Stats (for PostHog integration)
-    recipesGenerated: v.optional(v.number()),
-    recipesCookedCount: v.optional(v.number()),
-
-    createdAt: v.number(),
-  })
-    .index("by_email", ["email"]),
-
-  ingredients: defineTable({
-    userId: v.id("users"),
-    name: v.string(),
-    source: v.union(v.literal("manual"), v.literal("photo")),
-    addedAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_recent", ["userId", "addedAt"]),
-
-  recipes: defineTable({
-    userId: v.id("users"),
-    title: v.string(),
-    description: v.string(),
-    imageUrl: v.optional(v.string()),
-
-    ingredients: v.array(v.object({
-      name: v.string(),
-      amount: v.string(),
-      unit: v.optional(v.string()),
-    })),
-
-    steps: v.array(v.object({
-      order: v.number(),
-      instruction: v.string(),
-      timerMinutes: v.optional(v.number()),
-    })),
-
-    cookTimeMinutes: v.number(),
-    prepTimeMinutes: v.optional(v.number()),
-    servings: v.number(),
-    difficulty: v.optional(v.union(
-      v.literal("easy"),
-      v.literal("medium"),
-      v.literal("hard")
-    )),
-
-    tags: v.array(v.string()),
-    cuisine: v.optional(v.string()),
-
-    isPublic: v.boolean(),
-    aiGenerated: v.boolean(),
-    sourceModel: v.optional(v.string()), // Which AI model generated it
-
-    // Engagement (for Explore)
-    viewCount: v.optional(v.number()),
-    saveCount: v.optional(v.number()),
-
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_recent", ["userId", "createdAt"])
-    .index("by_public", ["isPublic", "createdAt"])
-    .index("by_tags", ["tags"]),
-
-  favorites: defineTable({
-    userId: v.id("users"),
-    recipeId: v.id("recipes"),
-    savedAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_recent", ["userId", "savedAt"])
-    .index("by_recipe", ["recipeId"])
-    .index("by_user_recipe", ["userId", "recipeId"]),
-
-  // P1: Voting for Explore
-  votes: defineTable({
-    userId: v.id("users"),
-    recipeId: v.id("recipes"),
-    value: v.union(v.literal(1), v.literal(-1)),
-    createdAt: v.number(),
-  })
-    .index("by_user_recipe", ["userId", "recipeId"])
-    .index("by_recipe", ["recipeId"]),
-
-  // Analytics events (for PostHog backup/custom analysis)
-  analyticsEvents: defineTable({
-    userId: v.optional(v.id("users")),
-    eventName: v.string(),
-    properties: v.optional(v.any()),
-    timestamp: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_event", ["eventName", "timestamp"]),
-});
-```
-
----
-
-## 9. API Design
-
-### 9.1 Convex Queries
-
-```typescript
-// Read operations (reactive, real-time)
-
-// Ingredients
-ingredients.listByUser() → Ingredient[]
-ingredients.count() → number
-
-// Recipes
-recipes.getById(id) → Recipe | null
-recipes.listByUser(limit?, cursor?) → { recipes: Recipe[], nextCursor? }
-recipes.listFavorites(limit?, cursor?) → { recipes: Recipe[], nextCursor? }
-recipes.listPublic(limit?, cursor?, tags?) → { recipes: Recipe[], nextCursor? } // P1
-recipes.search(query, filters?) → Recipe[] // P1
-
-// Users
-users.getCurrentUser() → User | null
-users.getPreferences() → { preferredModel, interestTags }
-users.getStats() → { recipesGenerated, recipesCookedCount, favoriteCount }
-```
-
-### 9.2 Convex Mutations
-
-```typescript
-// Write operations
-
-// Ingredients
-ingredients.add(name, source) → ingredientId
-ingredients.addBatch(names[], source) → ingredientId[]
-ingredients.remove(id) → void
-ingredients.clear() → void
-
-// Recipes
-recipes.create(recipe) → recipeId
-recipes.update(id, updates) → void
-recipes.delete(id) → void
-recipes.togglePublic(id) → boolean // P1
-recipes.incrementCookCount(id) → void
-
-// Favorites
-favorites.add(recipeId) → favoriteId
-favorites.remove(recipeId) → void
-favorites.toggle(recipeId) → boolean
-
-// Users
-users.updatePreferences(preferredModel?, interestTags?) → void
-users.incrementRecipesGenerated() → void
-
-// Votes (P1)
-votes.cast(recipeId, value) → void
-votes.remove(recipeId) → void
-```
-
-### 9.3 Convex Actions (AI)
-
-```typescript
-// External API calls (not reactive)
-
-ai.extractIngredients(imageBase64: string) → string[]
-// Uses Gemini Vision to identify food items in image
-
-ai.generateRecipe(ingredients: string[], preferences?: {
-  cuisine?: string,
-  difficulty?: string,
-  maxTime?: number,
-  dietary?: string[],
-}) → GeneratedRecipe
-// Uses selected AI model to create recipe
-
-ai.suggestTags(title: string, ingredients: string[]) → string[]
-// Auto-generate relevant tags
-
-ai.generateRecipeImage(title: string, description: string) → string
-// P1: Generate image for recipe using DALL-E/Imagen
-```
-
 ---
 
 ## 10. Analytics & User Stats (PostHog)
@@ -584,53 +391,6 @@ App
 
 ---
 
-## 12. Implementation Plan
-
-### Phase 1: Foundation (Days 1-2)
-- [ ] Initialize project with React Native Reusables CLI
-- [ ] Setup Convex backend
-- [ ] Configure Convex Auth (email + Google OAuth)
-- [ ] Create tab navigation structure
-- [ ] Build auth screens (login/signup)
-- [ ] Setup PostHog SDK
-
-### Phase 2: Core Features (Days 3-5)
-- [ ] Ingredient input component (text)
-- [ ] Camera integration for photo input
-- [ ] AI action: extract ingredients from image
-- [ ] AI action: generate recipe
-- [ ] Recipe preview/editor screen
-- [ ] Save recipe flow
-
-### Phase 3: Recipe Management (Days 5-6)
-- [ ] Recipe detail screen
-- [ ] Favorites functionality
-- [ ] Favorites list screen
-- [ ] Model selection in settings
-- [ ] User preferences persistence
-
-### Phase 4: Cooking Experience (Days 7-8)
-- [ ] Cooking mode screen
-- [ ] Step-by-step navigation
-- [ ] Timer functionality
-- [ ] Timer notifications
-- [ ] Completion tracking
-
-### Phase 5: Polish & Demo (Day 9)
-- [ ] UI polish (animations, loading states)
-- [ ] Error handling
-- [ ] Analytics verification
-- [ ] Demo video recording
-- [ ] README documentation
-
-### Stretch Goals (If Time)
-- [ ] Explore feed
-- [ ] Recipe sharing
-- [ ] Voting system
-- [ ] User stats dashboard
-
----
-
 ## 13. Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
@@ -638,7 +398,6 @@ App
 | AI image recognition accuracy | Medium | Medium | Show extracted ingredients for user editing |
 | AI recipe quality | Low | Medium | User can edit before saving, regenerate option |
 | Time constraints | Medium | High | P0 features first, clear scope |
-| Convex RN compatibility | Low | High | Already solved in previous project |
 | OAuth setup complexity | Medium | Medium | Start with email, add OAuth if time |
 | PostHog RN integration | Low | Low | Good RN SDK, fallback to web SDK |
 
@@ -647,22 +406,10 @@ App
 ## 14. Success Metrics
 
 ### Project Submission
-- [ ] All P0 features functional
+- [x] All P0 features functional
 - [ ] Demo video 5-10 minutes
 - [ ] README with setup instructions
-- [ ] Clean code structure
-
-### Professor's Rubric Alignment
-| Criteria | Target | Points |
-|----------|--------|--------|
-| Project Idea & Use Case | Clear ingredient→recipe→cook flow | 10 |
-| Frontend Implementation | Polished Expo + RN Reusables UI | 25 |
-| Backend API Design | Clean Convex functions | 20 |
-| Database Design | Indexed schema, relationships | 15 |
-| Full-Stack Integration | Real-time + AI actions | 15 |
-| UI/UX & User Flow | Intuitive navigation | 10 |
-| Code Quality | TypeScript, Biome, structure | 5 |
-| **Total** | | **100** |
+- [x] Clean code structure
 
 ---
 

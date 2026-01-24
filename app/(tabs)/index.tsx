@@ -229,7 +229,7 @@ export default function HomeScreen() {
       )}
 
       {/* Generate Button */}
-      <View className="p-5">
+      <View className="mt-5 bg-background p-5 pt-0">
         <Button
           className="h-14"
           onPress={handleGenerate}
