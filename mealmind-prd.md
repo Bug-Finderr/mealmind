@@ -278,14 +278,16 @@ Timer countdown (notification when done)
 │ name                │  │    │ title            │    │
 │ image               │  │    │ description      │    │
 │ isPremium           │  │    │ ingredients[]    │    │
-│ imageAnalysisModel  │  │    │ steps[]          │    │
-│ recipeGenerationModel│ │    │ cookTimeMinutes  │    │
-└─────────────────────┘  │    │ servings         │    │
-                         │    │ tags[]           │    │
-                         │    │ aiGenerated      │    │
-                         │    │ favorited        │    │
-                         │    │ archived         │    │
-                         │    │ createdAt        │    │
+│ preferences: {      │  │    │ steps[]          │    │
+│   imageAnalysisModel│  │    │ favorited        │    │
+│   recipeGeneration  │  │    │ archived         │    │
+│ }                   │  │    │ createdAt        │    │
+└─────────────────────┘  │    │ meta: {          │    │
+                         │    │   cookTimeMinutes│    │
+                         │    │   servings       │    │
+                         │    │   tags[]         │    │
+                         │    │   aiGenerated    │    │
+                         │    │ }                │    │
                          │    └──────────────────┘    │
                          │                            │
                          │    ┌──────────────────┐    │

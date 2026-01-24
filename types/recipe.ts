@@ -10,12 +10,17 @@ export type Step = {
   timerMinutes?: number;
 };
 
+export type RecipeMeta = {
+  cookTimeMinutes: number;
+  servings: number;
+  tags: string[];
+  aiGenerated?: boolean;
+};
+
 export type RecipeData = {
   title: string;
   description: string;
   ingredients: Ingredient[];
   steps: Step[];
-  cookTimeMinutes: number;
-  servings: number;
-  tags: string[];
+  meta: RecipeMeta;
 };

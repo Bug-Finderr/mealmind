@@ -31,21 +31,21 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
           <View className="flex-row items-center gap-1">
             <Icon as={Clock} className="size-3.5 text-muted-foreground" />
             <Text variant="small" className="text-muted-foreground">
-              {recipe.cookTimeMinutes} min
+              {recipe.meta?.cookTimeMinutes ?? 30} min
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
             <Icon as={Users} className="size-3.5 text-muted-foreground" />
             <Text variant="small" className="text-muted-foreground">
-              {recipe.servings}
+              {recipe.meta?.servings ?? 1}
             </Text>
           </View>
         </View>
 
         {/* Tags */}
-        {recipe.tags.length > 0 && (
+        {(recipe.meta?.tags?.length ?? 0) > 0 && (
           <View className="flex-row flex-wrap gap-1.5">
-            {recipe.tags.slice(0, 3).map((tag) => (
+            {recipe.meta.tags.slice(0, 3).map((tag) => (
               <View
                 key={tag}
                 className="rounded-full bg-primary/10 px-2 py-0.5"

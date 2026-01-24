@@ -163,12 +163,11 @@ bunx --bun @react-native-reusables/cli@latest add [...components]
 - `steps[]` - Array of `{ order, instruction, timerMinutes? }`
 - `favorited` - Boolean for favorites filter
 - `archived` - Soft delete flag (swipe-to-delete)
-- `aiGenerated` - Boolean to track AI vs manual recipes
+- `meta` - Object containing `{ cookTimeMinutes, servings, tags[], aiGenerated }`
 
 **users**
 - `isPremium` - Unlocks paid AI models
-- `imageAnalysisModel` - Preferred model for photo scanning
-- `recipeGenerationModel` - Preferred model for recipe creation
+- `preferences` - Object containing `{ imageAnalysisModel, recipeGenerationModel }`
 
 ---
 

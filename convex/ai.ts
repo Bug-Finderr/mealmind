@@ -32,7 +32,7 @@ async function resolveModel(
   if (!userId) return google(DEFAULT_MODEL_KEY);
 
   const user = await ctx.runQuery(internal.users.getById, { userId });
-  const modelKey = user?.[preference] ?? DEFAULT_MODEL_KEY;
+  const modelKey = user?.preferences?.[preference] ?? DEFAULT_MODEL_KEY;
   const config = await ctx.runQuery(internal.models.getByKey, {
     key: modelKey,
   });
@@ -99,9 +99,11 @@ export const generateRecipe = internalAction({
           timerMinutes: z.number().optional(),
         }),
       ),
-      cookTimeMinutes: z.number(),
-      servings: z.number(),
-      tags: z.array(z.string()),
+      meta: z.object({
+        cookTimeMinutes: z.number(),
+        servings: z.number(),
+        tags: z.array(z.string()),
+      }),
     });
 
     const userPreferences = userPrompt

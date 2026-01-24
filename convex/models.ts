@@ -5,7 +5,7 @@ export const list = query({
   handler: async (ctx) => {
     return await ctx.db
       .query("models")
-      .filter((q) => q.eq(q.field("enabled"), true))
+      .withIndex("by_enabled", (q) => q.eq("enabled", true))
       .collect();
   },
 });

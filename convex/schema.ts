@@ -14,10 +14,13 @@ const schema = defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-    // Custom fields
     isPremium: v.optional(v.boolean()),
-    imageAnalysisModel: v.optional(v.string()),
-    recipeGenerationModel: v.optional(v.string()),
+    preferences: v.optional(
+      v.object({
+        imageAnalysisModel: v.optional(v.string()),
+        recipeGenerationModel: v.optional(v.string()),
+      }),
+    ),
   }).index("email", ["email"]),
 
   models: defineTable({
@@ -26,7 +29,9 @@ const schema = defineSchema({
     provider: v.string(),
     tier: v.string(),
     enabled: v.boolean(),
-  }).index("by_key", ["key"]),
+  })
+    .index("by_key", ["key"])
+    .index("by_enabled", ["enabled"]),
 
   ingredients: defineTable({
     userId: v.id("users"),
@@ -55,16 +60,19 @@ const schema = defineSchema({
         timerMinutes: v.optional(v.number()),
       }),
     ),
-    cookTimeMinutes: v.number(),
-    servings: v.number(),
-    tags: v.array(v.string()),
-    aiGenerated: v.boolean(),
+    createdAt: v.number(),
     favorited: v.optional(v.boolean()),
     archived: v.optional(v.boolean()),
-    createdAt: v.number(),
+    meta: v.object({
+      cookTimeMinutes: v.number(),
+      servings: v.number(),
+      tags: v.array(v.string()),
+      aiGenerated: v.boolean(),
+    }),
   })
     .index("by_user", ["userId"])
-    .index("by_user_recent", ["userId", "createdAt"]),
+    .index("by_user_recent", ["userId", "createdAt"])
+    .index("by_user_favorited", ["userId", "favorited", "createdAt"]),
 });
 
 export default schema;

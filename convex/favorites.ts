@@ -35,11 +35,12 @@ export const list = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    const recipes = await ctx.db
+    return ctx.db
       .query("recipes")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user_favorited", (q) =>
+        q.eq("userId", userId).eq("favorited", true),
+      )
+      .order("desc")
       .collect();
-
-    return recipes.filter((r) => r.favorited);
   },
 });

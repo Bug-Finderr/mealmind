@@ -37,6 +37,7 @@ export const updateModelPreferences = mutation({
     if (!userId) throw new Error("Not authenticated");
 
     const user = await ctx.db.get(userId);
+    const currentPrefs = user?.preferences ?? {};
 
     // Validate model access for paid models
     if (args.imageAnalysisModel) {
@@ -59,12 +60,15 @@ export const updateModelPreferences = mutation({
     }
 
     await ctx.db.patch(userId, {
-      ...(args.imageAnalysisModel && {
-        imageAnalysisModel: args.imageAnalysisModel,
-      }),
-      ...(args.recipeGenerationModel && {
-        recipeGenerationModel: args.recipeGenerationModel,
-      }),
+      preferences: {
+        ...currentPrefs,
+        ...(args.imageAnalysisModel && {
+          imageAnalysisModel: args.imageAnalysisModel,
+        }),
+        ...(args.recipeGenerationModel && {
+          recipeGenerationModel: args.recipeGenerationModel,
+        }),
+      },
     });
   },
 });

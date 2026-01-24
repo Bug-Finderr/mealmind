@@ -23,9 +23,12 @@ const recipeValidator = v.object({
       timerMinutes: v.optional(v.number()),
     }),
   ),
-  cookTimeMinutes: v.number(),
-  servings: v.number(),
-  tags: v.array(v.string()),
+  meta: v.object({
+    cookTimeMinutes: v.number(),
+    servings: v.number(),
+    tags: v.array(v.string()),
+    aiGenerated: v.optional(v.boolean()),
+  }),
 });
 
 export const generate = action({
@@ -61,7 +64,7 @@ export const create = mutation({
     return ctx.db.insert("recipes", {
       userId,
       ...recipe,
-      aiGenerated: true,
+      meta: { ...recipe.meta, aiGenerated: recipe.meta.aiGenerated ?? false },
       createdAt: Date.now(),
     });
   },
@@ -76,7 +79,7 @@ export const saveInternal = internalMutation({
     return ctx.db.insert("recipes", {
       userId,
       ...recipe,
-      aiGenerated: true,
+      meta: { ...recipe.meta, aiGenerated: true },
       createdAt: Date.now(),
     });
   },
@@ -141,7 +144,13 @@ export const update = mutation({
       throw new Error("Not authorized");
     }
 
-    await ctx.db.patch(id, recipe);
+    await ctx.db.patch(id, {
+      ...recipe,
+      meta: {
+        ...recipe.meta,
+        aiGenerated: recipe.meta.aiGenerated ?? existing.meta.aiGenerated,
+      },
+    });
   },
 });
 

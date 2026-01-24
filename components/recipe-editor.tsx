@@ -25,7 +25,7 @@ export function RecipeEditor({
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editCookTime, setEditCookTime] = useState("30");
-  const [editServings, setEditServings] = useState("4");
+  const [editServings, setEditServings] = useState("1");
   const [editIngredients, setEditIngredients] = useState<Ingredient[]>([]);
   const [editSteps, setEditSteps] = useState<Step[]>([]);
   const [editTags, setEditTags] = useState<string[]>([]);
@@ -37,11 +37,11 @@ export function RecipeEditor({
     if (visible && recipe) {
       setEditTitle(recipe.title);
       setEditDescription(recipe.description);
-      setEditCookTime(String(recipe.cookTimeMinutes));
-      setEditServings(String(recipe.servings));
+      setEditCookTime(String(recipe.meta?.cookTimeMinutes ?? 30));
+      setEditServings(String(recipe.meta?.servings ?? 1));
       setEditIngredients([...recipe.ingredients]);
       setEditSteps([...recipe.steps]);
-      setEditTags([...recipe.tags]);
+      setEditTags([...(recipe.meta?.tags ?? [])]);
       setTagInput("");
     }
   }, [visible, recipe]);
@@ -118,9 +118,12 @@ export function RecipeEditor({
         steps: editSteps
           .filter((s) => s.instruction.trim())
           .map((s, i) => ({ ...s, order: i + 1 })),
-        cookTimeMinutes: Math.max(1, parseInt(editCookTime, 10) || 1),
-        servings: Math.max(1, parseInt(editServings, 10) || 1),
-        tags: editTags,
+        meta: {
+          cookTimeMinutes: Math.max(1, parseInt(editCookTime, 10) || 1),
+          servings: Math.max(1, parseInt(editServings, 10) || 1),
+          tags: editTags,
+          aiGenerated: recipe.meta?.aiGenerated ?? true,
+        },
       });
       onClose();
     } finally {
