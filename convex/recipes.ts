@@ -105,19 +105,15 @@ export const listPaginated = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return { page: [], isDone: true, continueCursor: "" };
 
-    const results = await ctx.db
+    let query = ctx.db
       .query("recipes")
       .withIndex("by_user_recent", (q) => q.eq("userId", userId))
-      .order("desc")
-      .paginate(paginationOpts);
+      .filter((q) => q.neq(q.field("archived"), true));
 
-    if (favoritesOnly) {
-      return {
-        ...results,
-        page: results.page.filter((r) => r.favorited === true),
-      };
-    }
-    return results;
+    if (favoritesOnly)
+      query = query.filter((q) => q.eq(q.field("favorited"), true));
+
+    return query.order("desc").paginate(paginationOpts);
   },
 });
 
@@ -161,5 +157,20 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(id);
+  },
+});
+
+export const archive = mutation({
+  args: { id: v.id("recipes") },
+  handler: async (ctx, { id }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const recipe = await ctx.db.get(id);
+    if (!recipe || recipe.userId !== userId) {
+      throw new Error("Not authorized");
+    }
+
+    await ctx.db.patch(id, { archived: true });
   },
 });

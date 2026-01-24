@@ -10,6 +10,7 @@ import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { ActivityIndicator, Platform, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useUniwind } from "uniwind";
 import { NAV_THEME } from "@/lib/theme";
 
@@ -62,20 +63,22 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <StripeProvider
-      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
-      urlScheme="mealmind"
-    >
-      <ConvexAuthProvider
-        client={convex}
-        storage={
-          Platform.OS === "android" || Platform.OS === "ios"
-            ? secureStorage
-            : undefined
-        }
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
+        urlScheme="mealmind"
       >
-        <RootLayoutNav />
-      </ConvexAuthProvider>
-    </StripeProvider>
+        <ConvexAuthProvider
+          client={convex}
+          storage={
+            Platform.OS === "android" || Platform.OS === "ios"
+              ? secureStorage
+              : undefined
+          }
+        >
+          <RootLayoutNav />
+        </ConvexAuthProvider>
+      </StripeProvider>
+    </GestureHandlerRootView>
   );
 }
