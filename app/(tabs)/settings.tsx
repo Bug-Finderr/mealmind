@@ -380,7 +380,7 @@ export default function SettingsScreen() {
 
             <ModelSelector
               label="Image Analysis"
-              value={user?.imageAnalysisModel ?? "gemini-3-flash-preview"}
+              value={user?.imageAnalysisModel ?? "gpt-5-mini"}
               models={models}
               isPremium={isPremium}
               disabled={isBusy}
@@ -389,7 +389,7 @@ export default function SettingsScreen() {
 
             <ModelSelector
               label="Recipe Generation"
-              value={user?.recipeGenerationModel ?? "gemini-3-flash-preview"}
+              value={user?.recipeGenerationModel ?? "gpt-5-mini"}
               models={models}
               isPremium={isPremium}
               disabled={isBusy}

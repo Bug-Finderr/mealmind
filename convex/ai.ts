@@ -9,7 +9,7 @@ import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { type ActionCtx, action, internalAction } from "./_generated/server";
 
-const DEFAULT_MODEL_KEY = "gemini-3-flash-preview";
+const DEFAULT_MODEL_KEY = "gpt-5-mini";
 
 type ProviderFn = (provider: string) => LanguageModel;
 
