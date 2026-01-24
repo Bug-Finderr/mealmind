@@ -58,7 +58,7 @@
 | ~~F3~~ | AI Recipe Generation | Generate recipe from ingredients and show | Returns complete recipe with steps, times |
 | ~~F4~~ | Ingredient Input (Photo) | Take photo, AI extracts ingredients | Photo → AI → editable ingredient list |
 | ~~F5~~ | Recipe Editor | Edit AI recipe before saving | Can modify title, ingredients, steps |
-| ~~F6~~ | Favorites | Save recipes to collection | Add/remove from favorites, view list |
+| ~~F6~~ | History & Favorites | View all generations, filter favorites | Infinite scroll, swipe-to-delete, favorites filter |
 | ~~F7~~ | Cooking Mode | Step-by-step with timers | Navigate steps, start/pause timers |
 | ~~F8~~ | User Profile | View/edit profile, sign out | Display name/email, edit name, sign out button |
 | ~~F9~~ | Payment Method | Add payment to unlock premium AI models | Stripe integration, unlock paid models |
@@ -68,8 +68,8 @@
 
 | ID | Feature | Description |
 |----|---------|-------------|
-| F11 | App Refinement | Test and refine existing features |
-| F12 | Offline Support | View saved recipes offline |
+| ~~F11~~ | App Refinement | Test and refine existing features |
+| ~~F12~~ | Offline Support | View saved recipes offline |
 | F13 | Notifications | Reminders for cooking steps |
 | F14 | Explore Feed | Browse community recipes |
 | F15 | Recipe Sharing | Publish recipe publicly |
@@ -101,9 +101,10 @@
 - User wants to regenerate if they don't like the suggestion
 
 ### Recipe Management
-- User wants to save recipes to their favorites
-- User wants to view their saved recipes anytime
-- User wants to delete recipes they no longer want
+- User wants to view their recipe history
+- User wants to filter history to show only favorites
+- User wants to delete recipes
+- User wants to favorite/unfavorite recipes from detail view
 
 ### Cooking
 - User wants step-by-step cooking instructions
@@ -134,7 +135,7 @@ Recipe Preview Screen
     or
 [Save directly]
     ↓
-Recipe saved to Favorites
+Recipe saved to History (optionally favorited)
 ```
 
 ### Flow 2: Generate Recipe from Photo
@@ -182,7 +183,7 @@ Timer countdown (notification when done)
 │                        MOBILE APP                               │
 │                    (Expo + React Native)                        │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
-│  │  Home    │  │Favorites │  │ Explore  │  │ Profile  │         │
+│  │  Home    │  │ History  │  │ Explore  │  │ Profile  │         │
 │  │  Screen  │  │  Screen  │  │  Screen  │  │  Screen  │         │
 │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘         │
 │       │             │             │             │               │
@@ -206,7 +207,7 @@ Timer countdown (notification when done)
 │                                    │                            │
 │  ┌─────────────────────────────────▼───────────────────────┐    │
 │  │                    DATABASE                             │    │
-│  │  users │ recipes │ favorites │ ingredients │ votes      │    │
+│  │  users │ recipes │ ingredients │ models │ votes (P1)    │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
@@ -283,6 +284,7 @@ Timer countdown (notification when done)
                          │    │ tags[]           │    │
                          │    │ aiGenerated      │    │
                          │    │ favorited        │    │
+                         │    │ archived         │    │
                          │    │ createdAt        │    │
                          │    └──────────────────┘    │
                          │                            │
@@ -378,7 +380,7 @@ App
 │
 ├── (tabs)/                   # Main tabs (authenticated)
 │   ├── index.tsx             # Home - Ingredient input & generation
-│   ├── favorites.tsx         # Saved recipes list
+│   ├── history.tsx           # Recipe history with favorites filter
 │   ├── settings.tsx          # Profile, premium, AI model selection
 │   └── _layout.tsx
 │

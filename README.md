@@ -13,7 +13,7 @@ MealMind is a mobile app that answers the daily question: "What can I cook with 
 - **Ingredient Input** - Add ingredients manually or scan your fridge with your camera
 - **AI Recipe Generation** - Get personalized recipes based on your ingredients and preferences
 - **Recipe Editor** - Customize AI-generated recipes before saving
-- **Favorites** - Save and organize your favorite recipes
+- **History** - Browse all generations, filter by favorites, swipe-to-delete
 - **Cooking Mode** - Step-by-step instructions with per-step timers
 - **AI Model Selection** - Choose from multiple AI providers (Gemini, OpenAI, Anthropic)
 - **Premium Tier** - Unlock advanced AI models with a one-time payment
@@ -45,7 +45,7 @@ mealmind/
 │   │   └── sign-up.tsx
 │   ├── (tabs)/               # Main app tabs
 │   │   ├── index.tsx         # Home - ingredient input
-│   │   ├── favorites.tsx     # Saved recipes
+│   │   ├── history.tsx       # Recipe history + favorites filter
 │   │   └── settings.tsx      # Profile & preferences
 │   └── recipe/
 │       ├── [id].tsx          # Recipe detail
@@ -53,7 +53,7 @@ mealmind/
 ├── convex/                   # Backend functions
 │   ├── schema.ts             # Database schema
 │   ├── ai.ts                 # AI actions (extract, generate)
-│   ├── recipes.ts            # Recipe CRUD
+│   ├── recipes.ts            # Recipe CRUD + paginated list
 │   ├── users.ts              # User profile
 │   ├── favorites.ts          # Favorites toggle
 │   ├── ingredients.ts        # Ingredient management
@@ -161,7 +161,8 @@ bunx --bun @react-native-reusables/cli@latest add [...components]
 **recipes**
 - `ingredients[]` - Array of `{ name, amount, unit? }`
 - `steps[]` - Array of `{ order, instruction, timerMinutes? }`
-- `favorited` - Boolean for favorites list
+- `favorited` - Boolean for favorites filter
+- `archived` - Soft delete flag (swipe-to-delete)
 - `aiGenerated` - Boolean to track AI vs manual recipes
 
 **users**
