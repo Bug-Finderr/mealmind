@@ -4,6 +4,8 @@
 
 MealMind is a mobile app that answers the daily question: "What can I cook with what I have?" Input your ingredients via text or photo, get AI-generated recipes tailored to your mood, and cook with step-by-step guidance including timers.
 
+[Demo Video](https://drive.google.com/file/d/10YXxPVpyhMwENesuLZd72MSdRbCCq03b/view?usp=sharing)
+
 ---
 
 ## Features
