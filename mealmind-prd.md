@@ -239,7 +239,7 @@ Timer countdown (notification when done)
 | **Auth** | Convex Auth | Built-in, OAuth support |
 | **AI** | AI SDK 6 | Multi-provider, unified API |
 | **AI Models** | Gemini, OpenAI, Anthropic | Flexibility, quality options |
-| **Analytics** | PostHog | Open-source, product analytics |
+| **Payments** | Stripe | Premium subscriptions |
 | **Linting** | Biome | Fast, unified linter/formatter |
 | **Git Hooks** | Lefthook | Pre-commit checks |
 
@@ -251,17 +251,16 @@ Timer countdown (notification when done)
 - Actions can call external APIs (AI providers)
 - Developer already familiar (from previous project)
 
-**AI SDK 6 over direct API calls:**
-- Unified interface for multiple providers
-- Easy provider switching
-- Built-in streaming support
-- Image input support
+**Vercel AI SDK over direct API calls:**
+- Unified interface for multiple providers (Google, OpenAI, Anthropic)
+- Easy provider switching based on user preference
+- Structured output with Zod schema validation
+- Image input support for ingredient extraction
 
-**PostHog over Mixpanel/Amplitude:**
-- Open-source, self-hostable option
-- Free tier sufficient for project
-- React Native SDK available
-- Feature flags for future use
+**Stripe for Payments:**
+- Industry standard for mobile payments
+- React Native SDK with PaymentSheet
+- Easy integration with Convex actions
 
 ---
 
@@ -270,57 +269,58 @@ Timer countdown (notification when done)
 ### 8.1 Entity Relationship Diagram
 
 ```
-┌───────────────┐       ┌──────────────┐
-│    users      │       │   recipes    │
-├───────────────┤       ├──────────────┤
-│ _id           │──┐    │ _id          │
-│ email         │  │    │ userId      ←┼────┐
-│ name          │  │    │ title        │    │
-│ avatarUrl     │  │    │ description  │    │
-│ preferredModel│  │    │ imageUrl     │    │
-│ interestTags  │  │    │ ingredients[]│    │
-│ createdAt     │  │    │ steps[]      │    │
-└───────────────┘  │    │ cookTime     │    │
-                   │    │ servings     │    │
-                   │    │ tags[]       │    │
-                   │    │ isPublic     │    │
-                   │    │ aiGenerated  │    │
-                   │    │ createdAt    │    │
-                   │    └──────────────┘    │
-                   │                        │
-                   │    ┌──────────────┐    │
-                   │    │  favorites   │    │
-                   │    ├──────────────┤    │
-                   │    │ _id          │    │
-                   └───→│ userId       │    │
-                        │ recipeId    ←┼────┤
-                        │ savedAt      │    │
-                        └──────────────┘    │
-                                            │
-                        ┌──────────────┐    │
-                        │ ingredients  │    │
-                        ├──────────────┤    │
-                        │ _id          │    │
-                        │ userId      ←┼────┤
-                        │ name         │    │
-                        │ source       │    │
-                        │ addedAt      │    │
-                        └──────────────┘    │
-                                            │
-                        ┌──────────────┐    │
-                        │    votes     │    │
-                        ├──────────────┤    │
-                        │ _id          │    │
-                        │ userId      ←┼────┘
-                        │ recipeId     │
-                        │ value (+1/-1)│
-                        │ createdAt    │
-                        └──────────────┘
+┌─────────────────────┐       ┌──────────────────┐
+│       users         │       │     recipes      │
+├─────────────────────┤       ├──────────────────┤
+│ _id                 │──┐    │ _id              │
+│ email               │  │    │ userId          ←┼────┐
+│ name                │  │    │ title            │    │
+│ image               │  │    │ description      │    │
+│ isPremium           │  │    │ ingredients[]    │    │
+│ imageAnalysisModel  │  │    │ steps[]          │    │
+│ recipeGenerationModel│ │    │ cookTimeMinutes  │    │
+└─────────────────────┘  │    │ servings         │    │
+                         │    │ tags[]           │    │
+                         │    │ aiGenerated      │    │
+                         │    │ favorited        │    │
+                         │    │ createdAt        │    │
+                         │    └──────────────────┘    │
+                         │                            │
+                         │    ┌──────────────────┐    │
+                         │    │   ingredients    │    │
+                         │    ├──────────────────┤    │
+                         │    │ _id              │    │
+                         └───→│ userId           │    │
+                              │ name             │    │
+                              │ source           │    │
+                              │ addedAt          │    │
+                              └──────────────────┘    │
+                                                      │
+                              ┌──────────────────┐    │
+                              │     models       │    │
+                              ├──────────────────┤    │
+                              │ _id              │    │
+                              │ key              │    │
+                              │ name             │    │
+                              │ provider         │    │
+                              │ tier (free/paid) │    │
+                              │ enabled          │    │
+                              └──────────────────┘    │
+                                                      │
+                              ┌──────────────────┐    │
+                              │  votes (P1)      │    │
+                              ├──────────────────┤    │
+                              │ _id              │    │
+                              │ userId          ←┼────┘
+                              │ recipeId         │
+                              │ value (+1/-1)    │
+                              │ createdAt        │
+                              └──────────────────┘
 ```
 
 ---
 
-## 10. Analytics & User Stats (PostHog)
+## 10. Analytics & User Stats (Future - P1)
 
 ### 10.1 Events to Track
 
@@ -339,10 +339,10 @@ Timer countdown (notification when done)
 | `model_changed` | from_model, to_model | Preferences |
 | `recipe_shared` | recipe_id | P1: Virality |
 
-### 10.2 User Properties
+### 10.2 User Properties (Future)
 
 ```typescript
-// Set on PostHog user profile
+// Future analytics user profile
 {
   email: string,
   created_at: Date,
@@ -351,13 +351,13 @@ Timer countdown (notification when done)
   total_recipes_cooked: number,
   favorite_cuisines: string[],
   avg_cooking_time: number,
-  is_premium: boolean, // Future
+  is_premium: boolean,
 }
 ```
 
 ### 10.3 User Stats Dashboard (P1)
 
-Display in Profile screen:
+Display in Settings screen:
 - Recipes generated this month
 - Recipes cooked
 - Most used ingredients
@@ -371,22 +371,23 @@ Display in Profile screen:
 
 ```
 App
-├── (auth)                    # Auth group (unauthenticated)
-│   ├── login.tsx
-│   └── signup.tsx
+├── (auth)/                   # Auth group (unauthenticated)
+│   ├── sign-in.tsx
+│   ├── sign-up.tsx
+│   └── _layout.tsx
 │
-├── (tabs)                    # Main tabs (authenticated)
-│   ├── index.tsx             # Home - Ingredient input
-│   ├── favorites.tsx         # Saved recipes
-│   ├── explore.tsx           # Community (P1)
-│   └── profile.tsx           # Settings & stats
+├── (tabs)/                   # Main tabs (authenticated)
+│   ├── index.tsx             # Home - Ingredient input & generation
+│   ├── favorites.tsx         # Saved recipes list
+│   ├── settings.tsx          # Profile, premium, AI model selection
+│   └── _layout.tsx
 │
 ├── recipe/
-│   ├── [id].tsx              # Recipe detail
-│   ├── edit.tsx              # Edit recipe
-│   └── cook.tsx              # Cooking mode
+│   ├── [id].tsx              # Recipe detail view
+│   └── cook.tsx              # Cooking mode with timers
 │
-└── _layout.tsx               # Root layout
+├── index.tsx                 # Entry point (auth redirect)
+└── _layout.tsx
 ```
 
 ---
@@ -408,7 +409,7 @@ App
 ### Project Submission
 - [x] All P0 features functional
 - [ ] Demo video 5-10 minutes
-- [ ] README with setup instructions
+- [x] README with setup instructions
 - [x] Clean code structure
 
 ---

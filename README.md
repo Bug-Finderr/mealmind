@@ -1,73 +1,206 @@
-# Minimal Uniwind Template
+# MealMind
 
-This is a [React Native](https://reactnative.dev/) project built with [Expo](https://expo.dev/) and [React Native Reusables](https://reactnativereusables.com).
+**Transform your ingredients into delicious recipes with AI.**
 
-It was initialized using the following command:
-
-```bash
-npx @react-native-reusables/cli@latest init -t .
-```
-
-## Getting Started
-
-To run the development server:
-
-```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    # or
-    bun dev
-```
-
-This will start the Expo Dev Server. Open the app in:
-
-- **iOS**: press `i` to launch in the iOS simulator _(Mac only)_
-- **Android**: press `a` to launch in the Android emulator
-- **Web**: press `w` to run in a browser
-
-You can also scan the QR code using the [Expo Go](https://expo.dev/go) app on your device. This project fully supports running in Expo Go for quick testing on physical devices.
-
-## Adding components
-
-You can add more reusable components using the CLI:
-
-```bash
-npx react-native-reusables/cli@latest add [...components]
-```
-
-> e.g. `npx react-native-reusables/cli@latest add input textarea`
-
-If you don't specify any component names, you'll be prompted to select which components to add interactively. Use the `--all` flag to install all available components at once.
-
-## Project Features
-
-- ⚛️ Built with [Expo Router](https://expo.dev/router)
-- 🎨 Styled with [Tailwind CSS](https://tailwindcss.com/) via [Uniwind](https://uniwind.dev/)
-- 📦 UI powered by [React Native Reusables](https://github.com/founded-labs/react-native-reusables)
-- 🚀 New Architecture enabled
-- 🔥 Edge to Edge enabled
-- 📱 Runs on iOS, Android, and Web
-
-## Learn More
-
-To dive deeper into the technologies used:
-
-- [React Native Docs](https://reactnative.dev/docs/getting-started)
-- [Expo Docs](https://docs.expo.dev/)
-- [Uniwind Docs](https://docs.uniwind.dev/)
-- [React Native Reusables](https://reactnativereusables.com)
-
-## Deploy with EAS
-
-The easiest way to deploy your app is with [Expo Application Services (EAS)](https://expo.dev/eas).
-
-- [EAS Build](https://docs.expo.dev/build/introduction/)
-- [EAS Updates](https://docs.expo.dev/eas-update/introduction/)
-- [EAS Submit](https://docs.expo.dev/submit/introduction/)
+MealMind is a mobile app that answers the daily question: "What can I cook with what I have?" Input your ingredients via text or photo, get AI-generated recipes tailored to your mood, and cook with step-by-step guidance including timers.
 
 ---
 
-If you enjoy using React Native Reusables, please consider giving it a ⭐ on [GitHub](https://github.com/founded-labs/react-native-reusables). Your support means a lot!
+## Features
+
+- **Ingredient Input** - Add ingredients manually or scan your fridge with your camera
+- **AI Recipe Generation** - Get personalized recipes based on your ingredients and preferences
+- **Recipe Editor** - Customize AI-generated recipes before saving
+- **Favorites** - Save and organize your favorite recipes
+- **Cooking Mode** - Step-by-step instructions with per-step timers
+- **AI Model Selection** - Choose from multiple AI providers (Gemini, OpenAI, Anthropic)
+- **Premium Tier** - Unlock advanced AI models with a one-time payment
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | Expo SDK 54 + React Native |
+| **Routing** | Expo Router (file-based) |
+| **Backend** | Convex (serverless, real-time) |
+| **Auth** | Convex Auth (email + Google OAuth) |
+| **AI** | AI SDK 6 (Gemini, OpenAI, Anthropic) |
+| **Payments** | Stripe (React Native SDK) |
+| **Styling** | Tailwind CSS via Uniwind |
+| **UI Components** | React Native Reusables |
+
+---
+
+## Project Structure
+
+```
+mealmind/
+├── app/
+│   ├── (auth)/               # Auth screens
+│   │   ├── sign-in.tsx
+│   │   └── sign-up.tsx
+│   ├── (tabs)/               # Main app tabs
+│   │   ├── index.tsx         # Home - ingredient input
+│   │   ├── favorites.tsx     # Saved recipes
+│   │   └── settings.tsx      # Profile & preferences
+│   └── recipe/
+│       ├── [id].tsx          # Recipe detail
+│       └── cook.tsx          # Cooking mode
+├── convex/                   # Backend functions
+│   ├── schema.ts             # Database schema
+│   ├── ai.ts                 # AI actions (extract, generate)
+│   ├── recipes.ts            # Recipe CRUD
+│   ├── users.ts              # User profile
+│   ├── favorites.ts          # Favorites toggle
+│   ├── ingredients.ts        # Ingredient management
+│   ├── models.ts             # AI model config
+│   └── stripe.ts             # Payment processing
+├── components/
+│   ├── ui/...                # Reusable UI primitives
+│   └── ...
+├── types/...                 # Shared TypeScript types
+└── lib/...                   # Utility functions
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) (package manager)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- [Convex account](https://convex.dev/)
+- iOS Simulator / Android Emulator / Physical device
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Bug-Finderr/mealmind.git
+   cd mealmind
+   ```
+
+2. **Install dependencies**
+   ```bash
+   bun install
+   ```
+
+3. **Set up Convex**
+   ```bash
+   bunx convex dev
+   ```
+   Follow the prompts to create a new project or link an existing one.
+
+4. **Configure environment variables**
+
+   Edit `.env.local` in the project root:
+   ```env
+   EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+   ```
+
+   Add secrets to Convex dashboard:
+   - `GOOGLE_GENERATIVE_AI_API_KEY` - Google AI API key
+   - `OPENAI_API_KEY` - OpenAI API key (for premium)
+   - `ANTHROPIC_API_KEY` - Anthropic API key (for premium)
+   - `STRIPE_SECRET_KEY` - Stripe secret key
+
+5. **Seed the AI models database**
+   ```bash
+   bunx convex run internal.models:seed
+   ```
+
+6. **Start development servers**
+   ```bash
+   bun dev
+   ```
+   This starts both Expo and Convex dev servers via mprocs.
+
+### Running on Device
+
+- **iOS Simulator**: Press `i` in the terminal
+- **Android Emulator**: Press `a` in the terminal
+- **Physical Device**: Scan QR code with Expo Go app
+
+---
+
+## Development Commands
+
+```bash
+bun dev              # Start Expo + Convex dev servers
+bun dev:expo         # Start Expo only
+bun dev:db           # Start Convex only
+bun lint             # Run Biome linter with auto-fix
+```
+
+### Adding UI Components
+
+```bash
+bunx --bun @react-native-reusables/cli@latest add [...components]
+```
+
+---
+
+## Database Schema
+
+### Tables
+
+| Table | Description |
+|-------|-------------|
+| `users` | User profiles with premium status and model preferences |
+| `recipes` | Generated/saved recipes with ingredients and steps |
+| `ingredients` | User's current ingredient list |
+| `models` | Available AI models with tier (free/paid) |
+
+### Key Fields
+
+**recipes**
+- `ingredients[]` - Array of `{ name, amount, unit? }`
+- `steps[]` - Array of `{ order, instruction, timerMinutes? }`
+- `favorited` - Boolean for favorites list
+- `aiGenerated` - Boolean to track AI vs manual recipes
+
+**users**
+- `isPremium` - Unlocks paid AI models
+- `imageAnalysisModel` - Preferred model for photo scanning
+- `recipeGenerationModel` - Preferred model for recipe creation
+
+---
+
+## AI Integration
+
+MealMind uses the Vercel AI SDK to support multiple providers.
+
+Users can select their preferred model in Settings. Premium models require a $9.99 one-time upgrade.
+
+---
+
+## Authentication
+
+MealMind supports:
+- **Email/Password** - Traditional signup/login
+- **Google OAuth** - One-tap sign-in
+
+Authentication is handled by Convex Auth with secure session management.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Acknowledgments
+
+- [Expo](https://expo.dev/) - React Native framework
+- [Convex](https://convex.dev/) - Backend platform
+- [Vercel AI SDK](https://sdk.vercel.ai/) - AI integration
+- [React Native Reusables](https://reactnativereusables.com/) - UI components
+- [Stripe](https://stripe.com/) - Payment processing
+
+<br>
+
+> This file was formatted with AI assistance.
