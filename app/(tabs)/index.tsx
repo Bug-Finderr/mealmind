@@ -4,9 +4,10 @@ import { useRouter } from "expo-router";
 import {
   Camera,
   ChefHat,
-  Loader2,
+  ImageIcon,
   Plus,
   Sparkles,
+  Trash2,
   X,
 } from "lucide-react-native";
 import { useState } from "react";
@@ -16,13 +17,16 @@ import { ExtractedIngredientsModal } from "@/components/extracted-ingredients-mo
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { useKeyboardHeight } from "@/hooks/use-keyboard-height";
 
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardHeight();
   const [input, setInput] = useState("");
   const [userPrompt, setUserPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -114,69 +118,90 @@ export default function HomeScreen() {
   };
 
   const hasIngredients = ingredients.length > 0;
+  const isBusy = isGenerating || isExtracting;
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="px-5 pt-4 pb-2">
+      <View className="px-5 pt-4 pb-4">
         <Text variant="h3">What's in your kitchen?</Text>
         <Text variant="muted" className="mt-1">
           Add ingredients or scan with camera
         </Text>
       </View>
 
-      {/* Input Row */}
-      <View className="flex-row gap-2 px-5 py-3">
-        <Input
-          className="flex-1"
-          placeholder="e.g. chicken, rice..."
-          value={input}
-          onChangeText={setInput}
-          onSubmitEditing={handleAdd}
-          returnKeyType="done"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <Button onPress={handleAdd} disabled={!input.trim()}>
-          <Icon as={Plus} className="size-5 text-primary-foreground" />
-        </Button>
-        <Button
-          variant="secondary"
-          onPress={handleCamera}
-          disabled={isExtracting}
-        >
-          {isExtracting ? (
-            <Icon as={Loader2} className="size-5 animate-spin" />
-          ) : (
-            <Icon as={Camera} className="size-5" />
-          )}
-        </Button>
+      {/* Search Input */}
+      <View className="px-5">
+        <View className="flex-row items-center gap-2">
+          <Input
+            className="h-12 flex-1"
+            placeholder="Add ingredient..."
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={handleAdd}
+            returnKeyType="done"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!isBusy}
+          />
+          <Button
+            className="h-12"
+            onPress={handleAdd}
+            disabled={!input.trim() || isBusy}
+          >
+            <Icon as={Plus} className="size-5 text-primary-foreground" />
+          </Button>
+        </View>
+
+        {/* Scan Buttons */}
+        <View className="mt-3 flex-row gap-2">
+          <Pressable
+            onPress={handleCamera}
+            disabled={isBusy}
+            className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card"
+            style={{ opacity: isBusy ? 0.5 : 1 }}
+          >
+            {isExtracting ? (
+              <Spinner className="size-4" />
+            ) : (
+              <Icon as={Camera} className="size-4 text-muted-foreground" />
+            )}
+            <Text variant="small" className="text-muted-foreground">
+              Camera
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleGallery}
+            disabled={isBusy}
+            className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card"
+            style={{ opacity: isBusy ? 0.5 : 1 }}
+          >
+            <Icon as={ImageIcon} className="size-4 text-muted-foreground" />
+            <Text variant="small" className="text-muted-foreground">
+              Gallery
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
-      {/* Quick Actions */}
-      <View className="flex-row gap-2 px-5 pb-2">
-        <Pressable
-          onPress={handleGallery}
-          disabled={isExtracting}
-          className="flex-row items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5"
-        >
-          <Text variant="small" className="text-muted-foreground">
-            Choose from gallery
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Ingredients */}
-      <View className="flex-1 px-5">
+      {/* Ingredients List */}
+      <View className="mt-4 flex-1 px-5">
         {hasIngredients ? (
           <>
             <View className="mb-3 flex-row items-center justify-between">
-              <Text variant="small" className="text-muted-foreground">
+              <Text variant="small" className="font-medium">
                 {ingredients.length} ingredient
-                {ingredients.length !== 1 && "s"} added
+                {ingredients.length !== 1 ? "s" : ""}
               </Text>
-              <Pressable onPress={handleClear} hitSlop={8}>
-                <Text className="text-destructive text-sm">Clear all</Text>
+              <Pressable
+                onPress={handleClear}
+                hitSlop={8}
+                disabled={isBusy}
+                className="flex-row items-center gap-1"
+                style={{ opacity: isBusy ? 0.5 : 1 }}
+              >
+                <Icon as={Trash2} className="size-3.5 text-destructive" />
+                <Text className="text-destructive text-sm">Clear</Text>
               </Pressable>
             </View>
 
@@ -187,12 +212,13 @@ export default function HomeScreen() {
               {ingredients.map((item) => (
                 <View
                   key={item._id}
-                  className="flex-row items-center gap-2 rounded-full border border-border bg-secondary/50 py-2 pr-2 pl-4"
+                  className="flex-row items-center gap-1.5 rounded-full border border-border bg-card py-1.5 pr-2 pl-3"
                 >
-                  <Text className="capitalize">{item.name}</Text>
+                  <Text className="max-w-11/12 capitalize">{item.name}</Text>
                   <Pressable
                     onPress={() => handleRemove(item._id)}
                     hitSlop={4}
+                    disabled={isBusy}
                     className="rounded-full bg-muted p-1"
                   >
                     <Icon as={X} className="size-3 text-muted-foreground" />
@@ -202,44 +228,56 @@ export default function HomeScreen() {
             </ScrollView>
           </>
         ) : (
-          <View className="flex-1 items-center justify-center gap-3">
-            <View className="rounded-full bg-muted/50 p-4">
-              <Icon as={ChefHat} className="size-10 text-muted-foreground" />
+          <View className="flex-1 items-center justify-center gap-4">
+            <View className="size-20 items-center justify-center rounded-full bg-muted/30">
+              <Icon as={ChefHat} className="size-10 text-muted-foreground/50" />
             </View>
-            <Text variant="muted" className="text-center">
-              Add some ingredients to get started
-            </Text>
+            <View className="items-center gap-1">
+              <Text className="font-medium text-muted-foreground">
+                No ingredients yet
+              </Text>
+              <Text
+                variant="small"
+                className="text-center text-muted-foreground/70"
+              >
+                Add ingredients manually or scan{"\n"}your fridge with the
+                camera
+              </Text>
+            </View>
           </View>
         )}
       </View>
 
-      {/* Context Input */}
-      {hasIngredients && (
-        <View className="px-5 pb-2">
+      {/* Bottom Section */}
+      <View
+        className="border-border border-t bg-card px-5 pt-4 pb-5"
+        style={{ marginBottom: Math.max(keyboardHeight - 50, 0) }}
+      >
+        {/* userPrompt Input */}
+        <View className="mb-4">
+          <Text variant="small" className="mb-3 text-muted-foreground">
+            What are you in the mood for? (optional)
+          </Text>
           <Input
-            className="min-h-20"
-            placeholder="What are you in the mood for? (optional)&#10;e.g. quick dinner, comfort food, healthy..."
+            className="min-h-16 border-b-0"
+            placeholder="e.g. quick dinner, comfort food, healthy..."
             value={userPrompt}
             onChangeText={setUserPrompt}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
+            editable={!isBusy}
           />
         </View>
-      )}
 
-      {/* Generate Button */}
-      <View className="mt-5 bg-background p-5 pt-0">
+        {/* Generate Button */}
         <Button
           className="h-14"
           onPress={handleGenerate}
-          disabled={!hasIngredients || isGenerating}
+          disabled={!hasIngredients || isBusy}
         >
           {isGenerating ? (
-            <Icon
-              as={Loader2}
-              className="size-5 animate-spin text-primary-foreground"
-            />
+            <Spinner className="text-primary-foreground" />
           ) : (
             <Icon as={Sparkles} className="size-5 text-primary-foreground" />
           )}

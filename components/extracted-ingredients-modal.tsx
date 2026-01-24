@@ -1,8 +1,9 @@
-import { Check, Loader2, Plus, X } from "lucide-react-native";
+import { Check, Plus, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,10 @@ export function ExtractedIngredientsModal({
     });
   };
 
+  const selectAll = () => setSelected(new Set(ingredients));
+  const deselectAll = () => setSelected(new Set());
+  const allSelected = selected.size === ingredients.length;
+
   const handleAdd = async () => {
     if (selected.size === 0) return;
     setIsAdding(true);
@@ -67,11 +72,19 @@ export function ExtractedIngredientsModal({
           </Pressable>
         </View>
 
-        <ScrollView className="flex-1 p-5">
-          <Text variant="muted" className="mb-4">
-            Tap to select ingredients to add
-          </Text>
-          <View className="gap-2">
+        <ScrollView className="flex-1 p-5 pt-4">
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text variant="muted">Tap to select ingredients to add</Text>
+            <Pressable
+              onPress={allSelected ? deselectAll : selectAll}
+              hitSlop={8}
+            >
+              <Text className="text-primary text-sm">
+                {allSelected ? "Deselect all" : "Select all"}
+              </Text>
+            </Pressable>
+          </View>
+          <View className="gap-2 pb-7">
             {ingredients.map((name) => {
               const isSelected = selected.has(name);
               return (
@@ -79,16 +92,28 @@ export function ExtractedIngredientsModal({
                   key={name}
                   onPress={() => toggle(name)}
                   className={cn(
-                    "flex-row items-center justify-between rounded-lg border p-4",
+                    "flex-row items-center gap-3 rounded-xl border p-4",
                     isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-border",
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card",
                   )}
                 >
-                  <Text className="capitalize">{name}</Text>
-                  {isSelected && (
-                    <Icon as={Check} className="size-5 text-primary" />
-                  )}
+                  <View
+                    className={cn(
+                      "size-6 items-center justify-center rounded-md border-2",
+                      isSelected
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/30",
+                    )}
+                  >
+                    {isSelected && (
+                      <Icon
+                        as={Check}
+                        className="size-4 text-primary-foreground"
+                      />
+                    )}
+                  </View>
+                  <Text className="flex-1 capitalize">{name}</Text>
                 </Pressable>
               );
             })}
@@ -102,10 +127,7 @@ export function ExtractedIngredientsModal({
             disabled={selected.size === 0 || isAdding}
           >
             {isAdding ? (
-              <Icon
-                as={Loader2}
-                className="size-5 animate-spin text-primary-foreground"
-              />
+              <Spinner className="text-primary-foreground" />
             ) : (
               <Icon as={Plus} className="size-5 text-primary-foreground" />
             )}

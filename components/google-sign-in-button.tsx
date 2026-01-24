@@ -1,12 +1,11 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { makeRedirectUri } from "expo-auth-session";
 import { openAuthSessionAsync } from "expo-web-browser";
-import { Loader2 } from "lucide-react-native";
 import { useState } from "react";
 import { Platform } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 
 const redirectTo = makeRedirectUri();
@@ -88,11 +87,7 @@ export function GoogleSignInButton({
       disabled={isLoading}
       className="h-12"
     >
-      {isLoading ? (
-        <Icon as={Loader2} className="size-5 animate-spin" />
-      ) : (
-        <GoogleIcon />
-      )}
+      {isLoading ? <Spinner /> : <GoogleIcon />}
       <Text>Continue with Google</Text>
     </Button>
   );

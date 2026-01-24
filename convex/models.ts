@@ -28,7 +28,7 @@ const MODELS = [
     tier: "free",
   },
   {
-    key: "gemini-3-pro",
+    key: "gemini-3-pro-preview",
     name: "Gemini 3 Pro",
     provider: "google",
     tier: "paid",

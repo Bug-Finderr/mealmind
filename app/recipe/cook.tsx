@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -85,11 +86,14 @@ export default function CookingModeScreen() {
 
   if (!recipe) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View className="flex-1 items-center justify-center gap-3 bg-background">
+        <Spinner className="size-8 text-primary" />
         <Text variant="muted">Loading...</Text>
       </View>
     );
   }
+
+  const progressPercent = ((currentStep + 1) / totalSteps) * 100;
 
   return (
     <View className="flex-1 bg-background">
@@ -112,26 +116,24 @@ export default function CookingModeScreen() {
         </View>
       </View>
 
+      {/* Progress Bar */}
+      <View className="px-5 py-4">
+        <View className="h-2 overflow-hidden rounded-full bg-muted">
+          <View
+            className="h-full rounded-full bg-primary"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </View>
+        <Text
+          variant="small"
+          className="mt-3 text-center text-muted-foreground"
+        >
+          Step {currentStep + 1} of {totalSteps}
+        </Text>
+      </View>
+
       {/* Content */}
       <View className="flex-1 justify-center px-5">
-        {/* Progress */}
-        <View className="items-center gap-3 pb-6">
-          <Text variant="muted">
-            Step {currentStep + 1} of {totalSteps}
-          </Text>
-          <View className="flex-row gap-2">
-            {recipe.steps.map(({ order }) => (
-              <View
-                key={order}
-                className={cn(
-                  "size-2.5 rounded-full",
-                  order - 1 <= currentStep ? "bg-primary" : "bg-muted",
-                )}
-              />
-            ))}
-          </View>
-        </View>
-
         {/* Step Card */}
         <View className="rounded-2xl border border-border bg-card p-6">
           <View className="mb-4 flex-row items-center gap-3">

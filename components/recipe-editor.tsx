@@ -1,18 +1,10 @@
-import {
-  Clock,
-  Loader2,
-  Minus,
-  Plus,
-  Save,
-  Timer,
-  Users,
-  X,
-} from "lucide-react-native";
+import { Clock, Minus, Plus, Save, Timer, Users, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { TextArea } from "@/components/ui/textarea";
 import type { Ingredient, RecipeData, Step } from "@/types/recipe";
@@ -32,8 +24,8 @@ export function RecipeEditor({
 }: RecipeEditorProps) {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editCookTime, setEditCookTime] = useState(30);
-  const [editServings, setEditServings] = useState(4);
+  const [editCookTime, setEditCookTime] = useState("30");
+  const [editServings, setEditServings] = useState("4");
   const [editIngredients, setEditIngredients] = useState<Ingredient[]>([]);
   const [editSteps, setEditSteps] = useState<Step[]>([]);
   const [editTags, setEditTags] = useState<string[]>([]);
@@ -45,8 +37,8 @@ export function RecipeEditor({
     if (visible && recipe) {
       setEditTitle(recipe.title);
       setEditDescription(recipe.description);
-      setEditCookTime(recipe.cookTimeMinutes);
-      setEditServings(recipe.servings);
+      setEditCookTime(String(recipe.cookTimeMinutes));
+      setEditServings(String(recipe.servings));
       setEditIngredients([...recipe.ingredients]);
       setEditSteps([...recipe.steps]);
       setEditTags([...recipe.tags]);
@@ -126,8 +118,8 @@ export function RecipeEditor({
         steps: editSteps
           .filter((s) => s.instruction.trim())
           .map((s, i) => ({ ...s, order: i + 1 })),
-        cookTimeMinutes: editCookTime,
-        servings: editServings,
+        cookTimeMinutes: Math.max(1, parseInt(editCookTime, 10) || 1),
+        servings: Math.max(1, parseInt(editServings, 10) || 1),
         tags: editTags,
       });
       onClose();
@@ -193,8 +185,8 @@ export function RecipeEditor({
               <View className="flex-row items-center gap-2">
                 <Input
                   className="flex-1"
-                  value={String(editCookTime)}
-                  onChangeText={(t) => setEditCookTime(Number(t) || 0)}
+                  value={editCookTime}
+                  onChangeText={setEditCookTime}
                   keyboardType="numeric"
                 />
                 <Text variant="muted">min</Text>
@@ -208,8 +200,8 @@ export function RecipeEditor({
                 </Text>
               </View>
               <Input
-                value={String(editServings)}
-                onChangeText={(t) => setEditServings(Number(t) || 1)}
+                value={editServings}
+                onChangeText={setEditServings}
                 keyboardType="numeric"
               />
             </View>
@@ -278,7 +270,7 @@ export function RecipeEditor({
             </View>
             {editSteps.map((step, i) => (
               <View
-                key={step.order}
+                key={step.instruction}
                 className="gap-2 rounded-lg border border-border p-3"
               >
                 <View className="flex-row items-start gap-3">
@@ -305,10 +297,21 @@ export function RecipeEditor({
                   <Icon as={Timer} className="size-4 text-muted-foreground" />
                   <Input
                     className="w-16"
-                    value={step.timerMinutes ? String(step.timerMinutes) : ""}
-                    onChangeText={(v) =>
-                      updateStep(i, "timerMinutes", Number(v) || 0)
+                    value={
+                      step.timerMinutes !== undefined
+                        ? String(step.timerMinutes)
+                        : ""
                     }
+                    onChangeText={(v) => {
+                      // Allow empty and numeric input while typing
+                      if (v === "" || /^\d*$/.test(v)) {
+                        updateStep(
+                          i,
+                          "timerMinutes",
+                          v === "" ? 0 : parseInt(v, 10) || 0,
+                        );
+                      }
+                    }}
                     keyboardType="numeric"
                     placeholder="0"
                   />
@@ -370,10 +373,7 @@ export function RecipeEditor({
             disabled={!editTitle.trim() || isSaving}
           >
             {isSaving ? (
-              <Icon
-                as={Loader2}
-                className="size-5 animate-spin text-primary-foreground"
-              />
+              <Spinner className="text-primary-foreground" />
             ) : (
               <Icon as={Save} className="size-5 text-primary-foreground" />
             )}

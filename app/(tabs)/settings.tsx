@@ -26,6 +26,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ type ModelSelectorProps = {
     tier: string;
   }>;
   isPremium: boolean;
+  disabled?: boolean;
   onChange: (key: string) => void;
 };
 
@@ -48,6 +50,7 @@ function ModelSelector({
   value,
   models,
   isPremium,
+  disabled,
   onChange,
 }: ModelSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -58,8 +61,12 @@ function ModelSelector({
       <View className="mb-3">
         <Text className="mb-2 text-muted-foreground text-sm">{label}</Text>
         <Pressable
-          className="flex-row items-center justify-between rounded-lg border border-border bg-background p-3"
-          onPress={() => setOpen(true)}
+          className={cn(
+            "flex-row items-center justify-between rounded-lg border border-border bg-background p-3",
+            disabled && "opacity-50",
+          )}
+          onPress={() => !disabled && setOpen(true)}
+          disabled={disabled}
         >
           <Text>{selectedModel?.name ?? "Select model"}</Text>
           <Icon as={ChevronDown} className="size-4 text-muted-foreground" />
@@ -144,7 +151,10 @@ export default function SettingsScreen() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const isBusy = isSaving || isUpgrading;
 
   const startEditing = () => {
     setEditName(user?.name ?? "");
@@ -157,9 +167,14 @@ export default function SettingsScreen() {
   };
 
   const handleSave = async () => {
-    if (!editName.trim()) return;
-    await updateName({ name: editName.trim() });
-    setIsEditing(false);
+    if (!editName.trim() || isSaving) return;
+    setIsSaving(true);
+    try {
+      await updateName({ name: editName.trim() });
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleUpgrade = async () => {
@@ -249,24 +264,44 @@ export default function SettingsScreen() {
                   onChangeText={setEditName}
                   placeholder="Enter your name"
                   autoFocus
+                  editable={!isSaving}
                 />
                 <Pressable
-                  className="size-10 items-center justify-center rounded-lg bg-primary"
+                  className={cn(
+                    "size-10 items-center justify-center rounded-lg bg-primary",
+                    isSaving && "opacity-50",
+                  )}
                   onPress={handleSave}
+                  disabled={isSaving}
                 >
-                  <Icon as={Check} className="size-5 text-primary-foreground" />
+                  {isSaving ? (
+                    <Spinner className="size-5 text-primary-foreground" />
+                  ) : (
+                    <Icon
+                      as={Check}
+                      className="size-5 text-primary-foreground"
+                    />
+                  )}
                 </Pressable>
                 <Pressable
-                  className="size-10 items-center justify-center rounded-lg bg-muted"
+                  className={cn(
+                    "size-10 items-center justify-center rounded-lg bg-muted",
+                    isSaving && "opacity-50",
+                  )}
                   onPress={cancelEditing}
+                  disabled={isSaving}
                 >
                   <Icon as={X} className="size-5 text-muted-foreground" />
                 </Pressable>
               </View>
             ) : (
               <Pressable
-                className="flex-row items-center justify-between"
+                className={cn(
+                  "flex-row items-center justify-between",
+                  isBusy && "opacity-50",
+                )}
                 onPress={startEditing}
+                disabled={isBusy}
               >
                 <Text className="text-lg">{user?.name || "Add your name"}</Text>
                 <Icon as={Pencil} className="size-5 text-muted-foreground" />
@@ -319,18 +354,18 @@ export default function SettingsScreen() {
                 <Text className="mb-3 text-muted-foreground text-sm">
                   Unlock premium AI models for better recipes
                 </Text>
-                <Button onPress={handleUpgrade} disabled={isUpgrading}>
+                <Button onPress={handleUpgrade} disabled={isBusy}>
                   {isUpgrading ? (
-                    <ActivityIndicator size="small" color="white" />
+                    <Spinner className="size-4 text-primary-foreground" />
                   ) : (
-                    <>
-                      <Icon
-                        as={Sparkles}
-                        className="size-4 text-primary-foreground"
-                      />
-                      <Text>Upgrade for $9.99</Text>
-                    </>
+                    <Icon
+                      as={Sparkles}
+                      className="size-4 text-primary-foreground"
+                    />
                   )}
+                  <Text>
+                    {isUpgrading ? "Processing..." : "Upgrade for $9.99"}
+                  </Text>
                 </Button>
               </>
             )}
@@ -348,6 +383,7 @@ export default function SettingsScreen() {
               value={user?.imageAnalysisModel ?? "gemini-3-flash-preview"}
               models={models}
               isPremium={isPremium}
+              disabled={isBusy}
               onChange={(key) => updateModelPrefs({ imageAnalysisModel: key })}
             />
 
@@ -356,6 +392,7 @@ export default function SettingsScreen() {
               value={user?.recipeGenerationModel ?? "gemini-3-flash-preview"}
               models={models}
               isPremium={isPremium}
+              disabled={isBusy}
               onChange={(key) =>
                 updateModelPrefs({ recipeGenerationModel: key })
               }
@@ -378,7 +415,11 @@ export default function SettingsScreen() {
 
       {/* Sign Out Button */}
       <View className="border-border border-t p-5">
-        <Button variant="destructive" onPress={() => signOut()}>
+        <Button
+          variant="destructive"
+          onPress={() => signOut()}
+          disabled={isBusy}
+        >
           <Icon as={LogOut} className="size-4 text-white" />
           <Text>Log Out</Text>
         </Button>

@@ -14,6 +14,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { RecipeEditor } from "@/components/recipe-editor";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -42,7 +43,8 @@ export default function RecipeScreen() {
 
   if (!recipe) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View className="flex-1 items-center justify-center gap-3 bg-background">
+        <Spinner className="size-8 text-primary" />
         <Text variant="muted">Loading recipe...</Text>
       </View>
     );
@@ -90,56 +92,71 @@ export default function RecipeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="px-5 pb-4">
+        <View className="px-5 pb-6">
           <Text variant="h3">{recipe.title}</Text>
-          <Text variant="muted" className="mt-2">
+          <Text variant="muted" className="mt-2 leading-relaxed">
             {recipe.description}
           </Text>
 
-          {/* Meta badges */}
-          <View className="mt-4 flex-row gap-3">
-            <View className="flex-row items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5">
-              <Icon as={Clock} className="size-4 text-muted-foreground" />
+          {/* Meta Cards */}
+          <View className="mt-5 flex-row gap-3">
+            <View className="flex-1 flex-row items-center justify-center gap-1 rounded-xl border border-border bg-card p-4">
+              <Icon as={Clock} className="size-5 text-muted-foreground" />
+              <Text className="font-semibold text-lg text-muted-foreground">
+                {recipe.cookTimeMinutes}
+              </Text>
               <Text variant="small" className="text-muted-foreground">
-                {recipe.cookTimeMinutes} min
+                minutes
               </Text>
             </View>
-            <View className="flex-row items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5">
-              <Icon as={Users} className="size-4 text-muted-foreground" />
+            <View className="flex-1 flex-row items-center justify-center gap-1 rounded-xl border border-border bg-card p-4">
+              <Icon as={Users} className="size-5 text-muted-foreground" />
+              <Text className="font-semibold text-lg text-muted-foreground">
+                {recipe.servings}
+              </Text>
               <Text variant="small" className="text-muted-foreground">
-                {recipe.servings} servings
+                servings
               </Text>
             </View>
           </View>
 
           {/* Tags */}
           {recipe.tags.length > 0 && (
-            <View className="mt-3 flex-row flex-wrap gap-2">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mt-4"
+              contentContainerClassName="gap-2"
+            >
               {recipe.tags.map((tag) => (
                 <View
                   key={tag}
-                  className="rounded-full bg-primary/10 px-3 py-1"
+                  className="rounded-full bg-primary/10 px-3.5 py-1.5"
                 >
-                  <Text className="text-primary text-xs capitalize">{tag}</Text>
+                  <Text className="text-primary text-sm capitalize">{tag}</Text>
                 </View>
               ))}
-            </View>
+            </ScrollView>
           )}
         </View>
 
         {/* Ingredients Section */}
         <View className="px-5 py-4">
-          <Text variant="h4" className="mb-3">
-            Ingredients
+          <Text variant="h4" className="mb-4">
+            Ingredients ({recipe.ingredients.length})
           </Text>
-          <View className="gap-2">
-            {recipe.ingredients.map((ing) => (
+          <View className="overflow-hidden rounded-xl border border-border bg-card">
+            {recipe.ingredients.map((ing, i) => (
               <View
                 key={ing.name}
-                className="flex-row items-center justify-between border-border border-b py-2"
+                className={`flex-row items-center justify-between px-4 py-3 ${
+                  i < recipe.ingredients.length - 1
+                    ? "border-border border-b"
+                    : ""
+                }`}
               >
-                <Text className="capitalize">{ing.name}</Text>
-                <Text variant="muted">
+                <Text className="flex-1 capitalize">{ing.name}</Text>
+                <Text className="font-medium text-muted-foreground">
                   {ing.amount}
                   {ing.unit ? ` ${ing.unit}` : ""}
                 </Text>
@@ -150,28 +167,33 @@ export default function RecipeScreen() {
 
         {/* Steps Section */}
         <View className="px-5 py-4">
-          <Text variant="h4" className="mb-3">
-            Instructions
+          <Text variant="h4" className="mb-4">
+            Instructions ({recipe.steps.length} steps)
           </Text>
-          <View className="gap-4">
+          <View className="gap-3">
             {recipe.steps.map((step) => (
-              <View key={step.order} className="flex-row gap-3">
-                <View className="size-7 items-center justify-center rounded-full bg-primary">
-                  <Text className="font-semibold text-primary-foreground text-sm">
-                    {step.order}
+              <View
+                key={step.order}
+                className="rounded-xl border border-border bg-card p-4"
+              >
+                <View className="flex-row items-start gap-3">
+                  <View className="size-7 items-center justify-center rounded-full bg-primary">
+                    <Text className="font-semibold text-primary-foreground text-sm">
+                      {step.order}
+                    </Text>
+                  </View>
+                  <Text className="flex-1 leading-relaxed">
+                    {step.instruction}
                   </Text>
                 </View>
-                <View className="flex-1">
-                  <Text className="leading-relaxed">{step.instruction}</Text>
-                  {step.timerMinutes != null && step.timerMinutes > 0 && (
-                    <View className="mt-2 flex-row items-center gap-1.5">
-                      <Icon as={Timer} className="size-4 text-primary" />
-                      <Text className="text-primary text-sm">
-                        {step.timerMinutes} min
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                {step.timerMinutes != null && step.timerMinutes > 0 && (
+                  <View className="mt-3 ml-10 flex-row items-center gap-1.5 self-start rounded-lg bg-primary/10 px-3 py-2">
+                    <Icon as={Timer} className="size-4 text-primary" />
+                    <Text className="font-medium text-primary text-sm">
+                      {step.timerMinutes} min
+                    </Text>
+                  </View>
+                )}
               </View>
             ))}
           </View>

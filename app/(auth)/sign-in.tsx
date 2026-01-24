@@ -1,12 +1,11 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { Link, Stack } from "expo-router";
-import { Loader2 } from "lucide-react-native";
 import * as React from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 
 function getErrorMessage(error: unknown): string {
@@ -104,9 +103,7 @@ export default function SignInScreen() {
               )}
 
               <Button onPress={handleSignIn} disabled={isLoading}>
-                {isLoading && (
-                  <Icon as={Loader2} className="size-4 animate-spin" />
-                )}
+                {isLoading && <Spinner className="size-4" />}
                 <Text>{isLoading ? "Signing in..." : "Sign In"}</Text>
               </Button>
 
