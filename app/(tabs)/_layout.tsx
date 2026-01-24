@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Heart, Home, Settings } from "lucide-react-native";
+import { Clock, Home, Settings } from "lucide-react-native";
 import { Icon } from "@/components/ui/icon";
 
 export default function TabsLayout() {
@@ -15,11 +15,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="favorites"
+        name="history"
         options={{
-          title: "Favorites",
+          title: "History",
           tabBarIcon: ({ color }) => (
-            <Icon as={Heart} className="size-5" color={color} />
+            <Icon as={Clock} className="size-5" color={color} />
           ),
         }}
       />

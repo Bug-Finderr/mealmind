@@ -1,4 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import type { RecipeData } from "../types/recipe";
 import { internal } from "./_generated/api";
@@ -92,6 +93,31 @@ export const list = query({
       .withIndex("by_user_recent", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+  },
+});
+
+export const listPaginated = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    favoritesOnly: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { paginationOpts, favoritesOnly }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return { page: [], isDone: true, continueCursor: "" };
+
+    const results = await ctx.db
+      .query("recipes")
+      .withIndex("by_user_recent", (q) => q.eq("userId", userId))
+      .order("desc")
+      .paginate(paginationOpts);
+
+    if (favoritesOnly) {
+      return {
+        ...results,
+        page: results.page.filter((r) => r.favorited === true),
+      };
+    }
+    return results;
   },
 });
 

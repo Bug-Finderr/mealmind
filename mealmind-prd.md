@@ -408,7 +408,7 @@ App
 
 ### Project Submission
 - [x] All P0 features functional
-- [ ] Demo video 5-10 minutes
+- [x] Demo video 5-10 minutes
 - [x] README with setup instructions
 - [x] Clean code structure
 
