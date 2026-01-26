@@ -89,14 +89,20 @@ export const generateRecipe = internalAction({
         z.object({
           name: z.string(),
           amount: z.string(),
-          unit: z.string().optional(),
+          unit: z
+            .string()
+            .describe(
+              "Unit of measurement (in metric units), or empty string if not applicable",
+            ),
         }),
       ),
       steps: z.array(
         z.object({
           order: z.number(),
           instruction: z.string(),
-          timerMinutes: z.number().optional(),
+          timerMinutes: z
+            .number()
+            .describe("Timer in minutes, or 0 if no timer needed"),
         }),
       ),
       meta: z.object({
@@ -113,7 +119,7 @@ export const generateRecipe = internalAction({
     const { output } = await generateText({
       model,
       system:
-        "You are a helpful cooking assistant. Create a delicious, practical recipe using the provided ingredients. Include precise measurements (in metric units) and clear step-by-step instructions. Add timer durations (in minutes) for steps that need timing like boiling, baking, or simmering. Keep it achievable for home cooks. If the user provides preferences or mood context, tailor the recipe accordingly.",
+        "You are a helpful cooking assistant. Create a delicious, practical recipe using the provided ingredients. Include precise measurements and clear step-by-step instructions. Add timer durations (in minutes) for steps that need timing like boiling, baking, or simmering. Keep it achievable for home cooks. If the user provides preferences or mood context, tailor the recipe accordingly.",
       prompt: `Create a recipe using these ingredients: ${ingredients.join(", ")}${userPreferences}`,
       output: Output.object({ schema }),
     });

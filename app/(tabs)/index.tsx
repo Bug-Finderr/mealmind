@@ -259,7 +259,7 @@ export default function HomeScreen() {
             What are you in the mood for? (optional)
           </Text>
           <Input
-            className="min-h-16 border-b-0"
+            className="min-h-16 rounded-b-none"
             placeholder="e.g. quick dinner, comfort food, healthy..."
             value={userPrompt}
             onChangeText={setUserPrompt}
@@ -271,20 +271,22 @@ export default function HomeScreen() {
         </View>
 
         {/* Generate Button */}
-        <Button
-          className="h-14"
-          onPress={handleGenerate}
-          disabled={!hasIngredients || isBusy}
-        >
-          {isGenerating ? (
-            <Spinner className="text-primary-foreground" />
-          ) : (
-            <Icon as={Sparkles} className="size-5 text-primary-foreground" />
-          )}
-          <Text className="font-semibold text-base">
-            {isGenerating ? "Generating..." : "Generate Recipe"}
-          </Text>
-        </Button>
+        <View className="rounded-md bg-card">
+          <Button
+            className="h-14"
+            onPress={handleGenerate}
+            disabled={!hasIngredients || isBusy}
+          >
+            {isGenerating ? (
+              <Spinner className="text-primary-foreground" />
+            ) : (
+              <Icon as={Sparkles} className="size-5 text-primary-foreground" />
+            )}
+            <Text className="font-semibold text-base">
+              {isGenerating ? "Generating..." : "Generate Recipe"}
+            </Text>
+          </Button>
+        </View>
       </View>
 
       {/* Extraction Modal */}

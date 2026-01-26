@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 // In-memory cache for instant filter switching
 const memCache: Record<string, unknown> = {};
@@ -8,35 +8,36 @@ export function useCachedData<T>(
   key: string,
   data: T | undefined,
 ): T | undefined {
-  const [diskCache, setDiskCache] = useState<T | undefined>(
+  const [cached, setCached] = useState<T | undefined>(
     () => memCache[key] as T | undefined,
   );
-  const prevKey = useRef(key);
 
-  // Load from disk when key changes
+  // Load from disk on mount or key change (only if no memCache)
   useEffect(() => {
-    if (prevKey.current !== key || !memCache[key]) {
-      prevKey.current = key;
+    if (!memCache[key]) {
       AsyncStorage.getItem(key).then((v) => {
         if (v) {
           const parsed = JSON.parse(v);
           memCache[key] = parsed;
-          setDiskCache(parsed);
+          setCached(parsed);
         }
       });
+    } else {
+      // Sync state with memCache when key changes
+      setCached(memCache[key] as T | undefined);
     }
   }, [key]);
 
   const hasData = Array.isArray(data) ? data.length > 0 : !!data;
 
-  // Save when we have real data
+  // Update cache and state when fresh data arrives
   useEffect(() => {
     if (hasData) {
+      setCached(data);
       memCache[key] = data;
       AsyncStorage.setItem(key, JSON.stringify(data));
     }
   }, [key, data, hasData]);
 
-  // Fresh data if available, otherwise cached
-  return hasData ? data : ((memCache[key] as T | undefined) ?? diskCache);
+  return cached;
 }
