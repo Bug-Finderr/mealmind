@@ -206,8 +206,8 @@ Timer countdown (notification when done)
 │  └─────────────────────────────────┼───────────────────────┘    │
 │                                    │                            │
 │  ┌─────────────────────────────────▼───────────────────────┐    │
-│  │                    DATABASE                             │    │
-│  │  users │ recipes │ ingredients │ models │ votes (P1)    │    │
+│  │                      DATABASE                           │    │
+│  │     users  │  recipes  │  models  │  votes (P1)         │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
@@ -273,40 +273,29 @@ Timer countdown (notification when done)
 ┌─────────────────────┐       ┌──────────────────┐
 │       users         │       │     recipes      │
 ├─────────────────────┤       ├──────────────────┤
-│ _id                 │──┐    │ _id              │
-│ email               │  │    │ userId          ←┼────┐
-│ name                │  │    │ title            │    │
-│ image               │  │    │ description      │    │
-│ isPremium           │  │    │ ingredients[]    │    │
-│ preferences: {      │  │    │ steps[]          │    │
-│   imageAnalysisModel│  │    │ favorited        │    │
-│   recipeGeneration  │  │    │ archived         │    │
-│ }                   │  │    │ createdAt        │    │
-└─────────────────────┘  │    │ meta: {          │    │
-                         │    │   cookTimeMinutes│    │
-                         │    │   servings       │    │
-                         │    │   tags[]         │    │
-                         │    │   aiGenerated    │    │
-                         │    │ }                │    │
-                         │    └──────────────────┘    │
-                         │                            │
-                         │    ┌──────────────────┐    │
-                         │    │   ingredients    │    │
-                         │    ├──────────────────┤    │
-                         │    │ _id              │    │
-                         └───→│ userId           │    │
-                              │ name             │    │
-                              │ source           │    │
-                              │ addedAt          │    │
+│ _id                 │       │ _id              │
+│ email               │       │ userId          ←┼────┐
+│ name                │       │ title            │    │
+│ image               │       │ description      │    │
+│ isPremium           │       │ ingredients[]    │    │
+│ preferences: {      │       │ steps[]          │    │
+│   imageAnalysisModel│       │ favorited        │    │
+│   recipeGeneration  │       │ archived         │    │
+│ }                   │       │ createdAt        │    │
+└─────────────────────┘       │ meta: {          │    │
+                              │   cookTimeMinutes│    │
+                              │   servings       │    │
+                              │   tags[]         │    │
+                              │   aiGenerated    │    │
+                              │ }                │    │
                               └──────────────────┘    │
                                                       │
                               ┌──────────────────┐    │
                               │     models       │    │
                               ├──────────────────┤    │
                               │ _id              │    │
-                              │ key              │    │
+                              │ modelId          │    │
                               │ name             │    │
-                              │ provider         │    │
                               │ tier (free/paid) │    │
                               │ enabled          │    │
                               └──────────────────┘    │

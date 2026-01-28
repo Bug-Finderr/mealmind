@@ -24,23 +24,14 @@ const schema = defineSchema({
   }).index("email", ["email"]),
 
   models: defineTable({
-    key: v.string(),
+    modelId: v.string(),
     name: v.string(),
     provider: v.string(),
     tier: v.string(),
     enabled: v.boolean(),
   })
-    .index("by_key", ["key"])
+    .index("by_modelId", ["modelId"])
     .index("by_enabled", ["enabled"]),
-
-  ingredients: defineTable({
-    userId: v.id("users"),
-    name: v.string(),
-    source: v.union(v.literal("manual"), v.literal("photo")),
-    addedAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_recent", ["userId", "addedAt"]),
 
   recipes: defineTable({
     userId: v.id("users"),

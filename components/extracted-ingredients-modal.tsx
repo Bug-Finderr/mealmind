@@ -11,7 +11,7 @@ type ExtractedIngredientsModalProps = {
   visible: boolean;
   onClose: () => void;
   ingredients: string[];
-  onAdd: (selected: string[]) => Promise<void>;
+  onAdd: (selected: string[]) => void;
 };
 
 export function ExtractedIngredientsModal({
@@ -46,11 +46,11 @@ export function ExtractedIngredientsModal({
   const deselectAll = () => setSelected(new Set());
   const allSelected = selected.size === ingredients.length;
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (selected.size === 0) return;
     setIsAdding(true);
     try {
-      await onAdd([...selected]);
+      onAdd([...selected]);
       onClose();
     } finally {
       setIsAdding(false);

@@ -1,4 +1,4 @@
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction } from "convex/react";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ExtractedIngredientsModal } from "@/components/extracted-ingredients-modal";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useIngredients } from "@/hooks/use-ingredients";
 import { useKeyboardHeight } from "@/hooks/use-keyboard-height";
 
 export default function HomeScreen() {
@@ -36,40 +36,39 @@ export default function HomeScreen() {
   );
   const [showModal, setShowModal] = useState(false);
 
-  const ingredients = useQuery(api.ingredients.list) ?? [];
-  const addIngredient = useMutation(api.ingredients.add);
-  const removeIngredient = useMutation(api.ingredients.remove);
-  const clearIngredients = useMutation(api.ingredients.clear);
+  const { ingredients, add, remove, clear, addMultiple } = useIngredients();
   const generateRecipe = useAction(api.recipes.generate);
   const extractIngredients = useAction(api.ai.extractIngredients);
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     const name = input.trim();
     if (!name) return;
-    await addIngredient({ name });
+    add(name);
     setInput("");
   };
 
-  const handleRemove = (id: Id<"ingredients">) => {
-    removeIngredient({ id });
+  const handleRemove = (name: string) => {
+    remove(name);
   };
 
   const handleClear = () => {
-    clearIngredients();
+    clear();
   };
 
   const handleGenerate = async () => {
     if (isGenerating) return;
     setIsGenerating(true);
     try {
-      const ingredientNames = ingredients.map((i) => i.name);
       const recipeId = await generateRecipe({
-        ingredients: ingredientNames,
+        ingredients,
         userPrompt: userPrompt.trim(),
       });
       router.push(`/recipe/${recipeId}`);
-    } catch (error) {
-      console.error("Failed to generate recipe:", error);
+    } catch {
+      Alert.alert(
+        "Generation Failed",
+        "Could not generate recipe. Please try again.",
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -105,15 +104,18 @@ export default function HomeScreen() {
       const extracted = await extractIngredients({ imageBase64: base64 });
       setExtractedIngredients(extracted);
       setShowModal(true);
-    } catch (error) {
-      console.error("Failed to extract ingredients:", error);
+    } catch {
+      Alert.alert(
+        "Extraction Failed",
+        "Could not identify ingredients. Please try again.",
+      );
     } finally {
       setIsExtracting(false);
     }
   };
 
-  const handleAddExtracted = async (selected: string[]) => {
-    await Promise.all(selected.map((name) => addIngredient({ name })));
+  const handleAddExtracted = (selected: string[]) => {
+    addMultiple(selected);
     setExtractedIngredients([]);
   };
 
@@ -209,14 +211,14 @@ export default function HomeScreen() {
               showsVerticalScrollIndicator={false}
               contentContainerClassName="flex-row flex-wrap gap-2 pb-4"
             >
-              {ingredients.map((item) => (
+              {ingredients.map((name) => (
                 <View
-                  key={item._id}
+                  key={name}
                   className="flex-row items-center gap-1.5 rounded-full border border-border bg-card py-1.5 pr-2 pl-3"
                 >
-                  <Text className="max-w-11/12 capitalize">{item.name}</Text>
+                  <Text className="max-w-11/12 capitalize">{name}</Text>
                   <Pressable
-                    onPress={() => handleRemove(item._id)}
+                    onPress={() => handleRemove(name)}
                     hitSlop={4}
                     disabled={isBusy}
                     className="rounded-full bg-muted p-1"

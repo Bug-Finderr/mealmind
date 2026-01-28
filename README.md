@@ -22,16 +22,16 @@ MealMind is a mobile app that answers the daily question: "What can I cook with 
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Expo SDK 54 + React Native |
-| **Routing** | Expo Router (file-based) |
-| **Backend** | Convex (serverless, real-time) |
-| **Auth** | Convex Auth (email + Google OAuth) |
-| **AI** | AI SDK 6 (Gemini, OpenAI, Anthropic) |
-| **Payments** | Stripe (React Native SDK) |
-| **Styling** | Tailwind CSS via Uniwind |
-| **UI Components** | React Native Reusables |
+| Layer             | Technology                           |
+| ----------------- | ------------------------------------ |
+| **Framework**     | Expo SDK 54 + React Native           |
+| **Routing**       | Expo Router (file-based)             |
+| **Backend**       | Convex (serverless, real-time)       |
+| **Auth**          | Convex Auth (email + Google OAuth)   |
+| **AI**            | AI SDK 6 (Gemini, OpenAI, Anthropic) |
+| **Payments**      | Stripe (React Native SDK)            |
+| **Styling**       | Tailwind CSS via Uniwind             |
+| **UI Components** | React Native Reusables               |
 
 ---
 
@@ -56,9 +56,12 @@ mealmind/
 │   ├── recipes.ts            # Recipe CRUD + paginated list
 │   ├── users.ts              # User profile
 │   ├── favorites.ts          # Favorites toggle
-│   ├── ingredients.ts        # Ingredient management
 │   ├── models.ts             # AI model config
 │   └── stripe.ts             # Payment processing
+├── hooks/
+│   ├── use-ingredients.ts    # Local ingredient storage
+│   ├── use-cached-data.ts    # Offline caching for lists
+│   └── use-keyboard-height.ts
 ├── components/
 │   ├── ui/...                # Reusable UI primitives
 │   └── ...
@@ -80,25 +83,30 @@ mealmind/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Bug-Finderr/mealmind.git
    cd mealmind
    ```
 
 2. **Install dependencies**
+
    ```bash
    bun install
    ```
 
 3. **Set up Convex**
+
    ```bash
    bunx convex dev
    ```
+
    Follow the prompts to create a new project or link an existing one.
 
 4. **Configure environment variables**
 
    Edit `.env.local` in the project root:
+
    ```env
    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
    ```
@@ -110,6 +118,7 @@ mealmind/
    - `STRIPE_SECRET_KEY` - Stripe secret key
 
 5. **Seed the AI models database**
+
    ```bash
    bunx convex run internal.models:seed
    ```
@@ -149,16 +158,18 @@ bunx --bun @react-native-reusables/cli@latest add [...components]
 
 ### Tables
 
-| Table | Description |
-|-------|-------------|
-| `users` | User profiles with premium status and model preferences |
-| `recipes` | Generated/saved recipes with ingredients and steps |
-| `ingredients` | User's current ingredient list |
-| `models` | Available AI models with tier (free/paid) |
+| Table     | Description                                             |
+| --------- | ------------------------------------------------------- |
+| `users`   | User profiles with premium status and model preferences |
+| `recipes` | Generated/saved recipes with ingredients and steps      |
+| `models`  | Available AI models with tier (free/paid)               |
+
+> **Note:** Ingredients are stored locally (AsyncStorage) not on the server. They're transient scratch-pad data used only until recipe generation.
 
 ### Key Fields
 
 **recipes**
+
 - `ingredients[]` - Array of `{ name, amount, unit? }`
 - `steps[]` - Array of `{ order, instruction, timerMinutes? }`
 - `favorited` - Boolean for favorites filter
@@ -166,6 +177,7 @@ bunx --bun @react-native-reusables/cli@latest add [...components]
 - `meta` - Object containing `{ cookTimeMinutes, servings, tags[], aiGenerated }`
 
 **users**
+
 - `isPremium` - Unlocks paid AI models
 - `preferences` - Object containing `{ imageAnalysisModel, recipeGenerationModel }`
 
@@ -182,6 +194,7 @@ Users can select their preferred model in Settings. Premium models require a $9.
 ## Authentication
 
 MealMind supports:
+
 - **Email/Password** - Traditional signup/login
 - **Google OAuth** - One-tap sign-in
 

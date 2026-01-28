@@ -7,10 +7,7 @@
     "dev:expo": "expo start -c",
     "dev:db": "bunx --bun convex dev",
     "lint": "biome check --write --unsafe",
-    "clean": "rm -rf .expo node_modules",
-    "android": "expo start -c --android",
-    "ios": "expo start -c --ios",
-    "web": "expo start -c --web"
+    "clean": "rm -rf .expo node_modules"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.23",
@@ -19,6 +16,7 @@
     "@ai-sdk/react": "^3.0.51",
     "@auth/core": "0.37.0",
     "@convex-dev/auth": "^0.0.90",
+    "@convex-dev/migrations": "^0.3.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/native": "^7.1.28",
     "@rn-primitives/accordion": "^1.2.0",

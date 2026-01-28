@@ -2,42 +2,35 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { generateText, type LanguageModel, Output } from "ai";
+import {
+  createProviderRegistry,
+  generateText,
+  type LanguageModel,
+  Output,
+} from "ai";
 import { v } from "convex/values";
 import { z } from "zod";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { type ActionCtx, action, internalAction } from "./_generated/server";
 
-const DEFAULT_MODEL_KEY = "gpt-5-mini";
+type ModelId = `${"google" | "openai" | "anthropic"}:${string}`;
 
-type ProviderFn = (provider: string) => LanguageModel;
+const DEFAULT_MODEL: ModelId = "openai:gpt-5-mini";
 
-function getProvider(provider: string): ProviderFn {
-  switch (provider) {
-    case "openai":
-      return openai;
-    case "anthropic":
-      return anthropic;
-    default:
-      return google;
-  }
-}
+const registry = createProviderRegistry({ google, openai, anthropic });
 
 async function resolveModel(
   ctx: ActionCtx,
   userId: Id<"users"> | null | undefined,
   preference: "imageAnalysisModel" | "recipeGenerationModel",
 ): Promise<LanguageModel> {
-  if (!userId) return google(DEFAULT_MODEL_KEY);
+  if (!userId) return registry.languageModel(DEFAULT_MODEL);
 
   const user = await ctx.runQuery(internal.users.getById, { userId });
-  const modelKey = user?.preferences?.[preference] ?? DEFAULT_MODEL_KEY;
-  const config = await ctx.runQuery(internal.models.getByKey, {
-    key: modelKey,
-  });
+  const modelPref = user?.preferences?.[preference] ?? DEFAULT_MODEL;
 
-  return getProvider(config?.provider ?? "google")(modelKey);
+  return registry.languageModel(modelPref as ModelId);
 }
 
 export const extractIngredients = action({

@@ -18,6 +18,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { cn } from "@/lib/utils";
 import type { RecipeData } from "@/types/recipe";
 
 export default function RecipeScreen() {
@@ -145,11 +146,10 @@ export default function RecipeScreen() {
             {recipe.ingredients.map((ing, i) => (
               <View
                 key={ing.name}
-                className={`flex-row items-center justify-between px-4 py-3 ${
-                  i < recipe.ingredients.length - 1
-                    ? "border-border border-b"
-                    : ""
-                }`}
+                className={cn(
+                  "flex-row items-center justify-between px-4 py-3",
+                  i < recipe.ingredients.length - 1 && "border-border border-b",
+                )}
               >
                 <Text className="flex-1 capitalize">{ing.name}</Text>
                 <Text className="font-medium text-muted-foreground">

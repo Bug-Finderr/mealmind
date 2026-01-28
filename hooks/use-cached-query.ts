@@ -17,9 +17,13 @@ export function useCachedData<T>(
     if (!memCache[key]) {
       AsyncStorage.getItem(key).then((v) => {
         if (v) {
-          const parsed = JSON.parse(v);
-          memCache[key] = parsed;
-          setCached(parsed);
+          try {
+            const parsed = JSON.parse(v);
+            memCache[key] = parsed;
+            setCached(parsed);
+          } catch {
+            AsyncStorage.removeItem(key);
+          }
         }
       });
     } else {

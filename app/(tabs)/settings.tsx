@@ -35,14 +35,14 @@ type ModelSelectorProps = {
   label: string;
   value: string;
   models: Array<{
-    key: string;
+    modelId?: string;
     name: string;
     provider: string;
     tier: string;
   }>;
   isPremium: boolean;
   disabled?: boolean;
-  onChange: (key: string) => void;
+  onChange: (modelId: string) => void;
 };
 
 function ModelSelector({
@@ -54,7 +54,7 @@ function ModelSelector({
   onChange,
 }: ModelSelectorProps) {
   const [open, setOpen] = useState(false);
-  const selectedModel = models.find((m) => m.key === value);
+  const selectedModel = models.find((m) => m.modelId === value);
 
   return (
     <>
@@ -82,11 +82,11 @@ function ModelSelector({
             <Text className="mb-4 font-semibold text-lg">{label}</Text>
             {models.map((model) => {
               const isLocked = model.tier === "paid" && !isPremium;
-              const isSelected = model.key === value;
+              const isSelected = model.modelId === value;
 
               return (
                 <Pressable
-                  key={model.key}
+                  key={model.modelId}
                   className={cn(
                     "mb-2 flex-row items-center justify-between rounded-lg border p-3",
                     isSelected
@@ -95,8 +95,8 @@ function ModelSelector({
                     isLocked && "opacity-50",
                   )}
                   onPress={() => {
-                    if (!isLocked) {
-                      onChange(model.key);
+                    if (!isLocked && model.modelId) {
+                      onChange(model.modelId);
                       setOpen(false);
                     }
                   }}
@@ -380,21 +380,27 @@ export default function SettingsScreen() {
 
             <ModelSelector
               label="Image Analysis"
-              value={user?.preferences?.imageAnalysisModel ?? "gpt-5-mini"}
+              value={
+                user?.preferences?.imageAnalysisModel ?? "openai:gpt-5-mini"
+              }
               models={models}
               isPremium={isPremium}
               disabled={isBusy}
-              onChange={(key) => updateModelPrefs({ imageAnalysisModel: key })}
+              onChange={(modelId) =>
+                updateModelPrefs({ imageAnalysisModel: modelId })
+              }
             />
 
             <ModelSelector
               label="Recipe Generation"
-              value={user?.preferences?.recipeGenerationModel ?? "gpt-5-mini"}
+              value={
+                user?.preferences?.recipeGenerationModel ?? "openai:gpt-5-mini"
+              }
               models={models}
               isPremium={isPremium}
               disabled={isBusy}
-              onChange={(key) =>
-                updateModelPrefs({ recipeGenerationModel: key })
+              onChange={(modelId) =>
+                updateModelPrefs({ recipeGenerationModel: modelId })
               }
             />
 

@@ -43,20 +43,24 @@ export const updateModelPreferences = mutation({
     if (args.imageAnalysisModel) {
       const model = await ctx.db
         .query("models")
-        .withIndex("by_key", (q) => q.eq("key", args.imageAnalysisModel!))
+        .withIndex("by_modelId", (q) =>
+          q.eq("modelId", args.imageAnalysisModel!),
+        )
         .first();
-      if (model?.tier === "paid" && !user?.isPremium) {
+      if (!model) throw new Error("Invalid model");
+      if (model.tier === "paid" && !user?.isPremium)
         throw new Error("Premium required for this model");
-      }
     }
     if (args.recipeGenerationModel) {
       const model = await ctx.db
         .query("models")
-        .withIndex("by_key", (q) => q.eq("key", args.recipeGenerationModel!))
+        .withIndex("by_modelId", (q) =>
+          q.eq("modelId", args.recipeGenerationModel!),
+        )
         .first();
-      if (model?.tier === "paid" && !user?.isPremium) {
+      if (!model) throw new Error("Invalid model");
+      if (model.tier === "paid" && !user?.isPremium)
         throw new Error("Premium required for this model");
-      }
     }
 
     await ctx.db.patch(userId, {
