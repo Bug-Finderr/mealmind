@@ -1,4 +1,5 @@
 import { useAction } from "convex/react";
+import { ConvexError } from "convex/values";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
@@ -64,11 +65,12 @@ export default function HomeScreen() {
         userPrompt: userPrompt.trim(),
       });
       router.push(`/recipe/${recipeId}`);
-    } catch {
-      Alert.alert(
-        "Generation Failed",
-        "Could not generate recipe. Please try again.",
-      );
+    } catch (error) {
+      const message =
+        error instanceof ConvexError
+          ? (error.data as string)
+          : "Could not generate recipe. Please try again.";
+      Alert.alert("Generation Failed", message);
     } finally {
       setIsGenerating(false);
     }

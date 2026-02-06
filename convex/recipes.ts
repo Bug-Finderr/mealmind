@@ -1,10 +1,13 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { RecipeData } from "../types/recipe";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, internalMutation, mutation, query } from "./_generated/server";
+
+const FREE_LIMIT = 10;
+const PREMIUM_MONTHLY_LIMIT = 100;
 
 const recipeValidator = v.object({
   title: v.string(),
@@ -31,6 +34,44 @@ const recipeValidator = v.object({
   }),
 });
 
+function getStartOfMonth(): number {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+}
+
+async function countAiRecipes(
+  ctx: { db: any },
+  userId: Id<"users">,
+  since?: number,
+) {
+  const q = ctx.db
+    .query("recipes")
+    .withIndex("by_user_recent", (q: any) => {
+      const base = q.eq("userId", userId);
+      return since ? base.gte("createdAt", since) : base;
+    })
+    .filter((q: any) => q.eq(q.field("meta.aiGenerated"), true));
+  return (await q.collect()).length;
+}
+
+export const getUsage = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const user = await ctx.db.get(userId);
+    const isPremium = user?.isPremium ?? false;
+    const limit = isPremium ? PREMIUM_MONTHLY_LIMIT : FREE_LIMIT;
+    const used = await countAiRecipes(
+      ctx,
+      userId,
+      isPremium ? getStartOfMonth() : undefined,
+    );
+
+    return { used, limit, isPremium };
+  },
+});
+
 export const generate = action({
   args: {
     ingredients: v.array(v.string()),
@@ -39,6 +80,15 @@ export const generate = action({
   handler: async (ctx, { ingredients, userPrompt }): Promise<Id<"recipes">> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
+
+    const usage = await ctx.runQuery(api.recipes.getUsage, {});
+    if (usage && usage.used >= usage.limit) {
+      throw new ConvexError(
+        usage.isPremium
+          ? `Monthly generation limit reached. Resets next month.`
+          : `Free generation limit reached. Upgrade to Premium for extended access.`,
+      );
+    }
 
     const recipe: RecipeData = await ctx.runAction(internal.ai.generateRecipe, {
       ingredients,

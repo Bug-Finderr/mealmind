@@ -143,6 +143,7 @@ export default function SettingsScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const user = useQuery(api.users.currentUser);
+  const usage = useQuery(api.recipes.getUsage);
   const models = useQuery(api.models.list);
   const updateName = useMutation(api.users.updateName);
   const upgradeToPremium = useMutation(api.users.upgradeToPremium);
@@ -314,6 +315,38 @@ export default function SettingsScreen() {
             <Text className="mb-2 text-muted-foreground text-sm">Email</Text>
             <Text className="text-lg">{user?.email ?? "—"}</Text>
           </View>
+
+          {/* Usage */}
+          {usage && (
+            <View className="rounded-xl border border-border bg-card p-4">
+              <View className="mb-3 flex-row items-center gap-2">
+                <Icon as={Sparkles} className="size-5 text-muted-foreground" />
+                <Text className="font-medium">Usage</Text>
+              </View>
+              <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-muted-foreground text-sm">
+                  {usage.used} / {usage.limit} generations
+                  {usage.isPremium ? " this month" : ""}
+                </Text>
+                <Text className="font-medium text-sm">
+                  {usage.limit - usage.used} left
+                </Text>
+              </View>
+              <View className="h-2 overflow-hidden rounded-full bg-muted">
+                <View
+                  className={cn(
+                    "h-full rounded-full",
+                    usage.used / usage.limit >= 0.9
+                      ? "bg-destructive"
+                      : "bg-primary",
+                  )}
+                  style={{
+                    width: `${Math.min((usage.used / usage.limit) * 100, 100)}%`,
+                  }}
+                />
+              </View>
+            </View>
+          )}
 
           {/* Premium Section */}
           <View
