@@ -1,4 +1,14 @@
-import { Clock, Minus, Plus, Save, Timer, Users, X } from "lucide-react-native";
+import {
+  Clock,
+  Minus,
+  Plus,
+  Redo2,
+  Save,
+  Timer,
+  Undo2,
+  Users,
+  X,
+} from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/button";
@@ -7,7 +17,29 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { TextArea } from "@/components/ui/textarea";
+import { useHistory } from "@/hooks/use-history";
+import { cn } from "@/lib/utils";
 import type { Ingredient, RecipeData, Step } from "@/types/recipe";
+
+type EditorState = {
+  title: string;
+  description: string;
+  cookTime: string;
+  servings: string;
+  ingredients: Ingredient[];
+  steps: Step[];
+  tags: string[];
+};
+
+const emptyState: EditorState = {
+  title: "",
+  description: "",
+  cookTime: "30",
+  servings: "1",
+  ingredients: [],
+  steps: [],
+  tags: [],
+};
 
 type RecipeEditorProps = {
   visible: boolean;
@@ -22,106 +54,123 @@ export function RecipeEditor({
   recipe,
   onSave,
 }: RecipeEditorProps) {
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editCookTime, setEditCookTime] = useState("30");
-  const [editServings, setEditServings] = useState("1");
-  const [editIngredients, setEditIngredients] = useState<Ingredient[]>([]);
-  const [editSteps, setEditSteps] = useState<Step[]>([]);
-  const [editTags, setEditTags] = useState<string[]>([]);
+  const {
+    state: ed,
+    set,
+    snapshot,
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
+  } = useHistory<EditorState>(emptyState);
   const [tagInput, setTagInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize state from recipe when modal opens
   useEffect(() => {
     if (visible && recipe) {
-      setEditTitle(recipe.title);
-      setEditDescription(recipe.description);
-      setEditCookTime(String(recipe.meta?.cookTimeMinutes ?? 30));
-      setEditServings(String(recipe.meta?.servings ?? 1));
-      setEditIngredients([...recipe.ingredients]);
-      setEditSteps([...recipe.steps]);
-      setEditTags([...(recipe.meta?.tags ?? [])]);
+      reset({
+        title: recipe.title,
+        description: recipe.description,
+        cookTime: String(recipe.meta?.cookTimeMinutes ?? 30),
+        servings: String(recipe.meta?.servings ?? 1),
+        ingredients: [...recipe.ingredients],
+        steps: [...recipe.steps],
+        tags: [...(recipe.meta?.tags ?? [])],
+      });
       setTagInput("");
     }
-  }, [visible, recipe]);
+  }, [visible, recipe, reset]);
 
-  // Ingredient helpers
+  // Discrete actions — snapshot before mutating
   const addIngredient = () => {
-    setEditIngredients([
-      ...editIngredients,
-      { name: "", amount: "", unit: "" },
-    ]);
+    snapshot();
+    set((s) => ({
+      ...s,
+      ingredients: [...s.ingredients, { name: "", amount: "", unit: "" }],
+    }));
   };
 
   const removeIngredient = (index: number) => {
-    setEditIngredients(editIngredients.filter((_, i) => i !== index));
+    snapshot();
+    set((s) => ({
+      ...s,
+      ingredients: s.ingredients.filter((_, i) => i !== index),
+    }));
   };
 
-  const updateIngredient = (
-    index: number,
-    field: keyof Ingredient,
-    value: string,
-  ) => {
-    setEditIngredients(
-      editIngredients.map((ing, i) =>
-        i === index ? { ...ing, [field]: value } : ing,
-      ),
-    );
-  };
-
-  // Step helpers
   const addStep = () => {
-    setEditSteps([
-      ...editSteps,
-      { order: editSteps.length + 1, instruction: "" },
-    ]);
+    snapshot();
+    set((s) => ({
+      ...s,
+      steps: [...s.steps, { order: s.steps.length + 1, instruction: "" }],
+    }));
   };
 
   const removeStep = (index: number) => {
-    setEditSteps(editSteps.filter((_, i) => i !== index));
+    snapshot();
+    set((s) => ({ ...s, steps: s.steps.filter((_, i) => i !== index) }));
   };
 
-  const updateStep = (
-    index: number,
-    field: keyof Step,
-    value: string | number,
-  ) => {
-    setEditSteps(
-      editSteps.map((step, i) =>
-        i === index ? { ...step, [field]: value } : step,
-      ),
-    );
-  };
-
-  // Tag helpers
   const addTag = () => {
     const tag = tagInput.trim().toLowerCase();
-    if (tag && !editTags.includes(tag)) {
-      setEditTags([...editTags, tag]);
+    if (tag && !ed.tags.includes(tag)) {
+      snapshot();
+      set((s) => ({ ...s, tags: [...s.tags, tag] }));
       setTagInput("");
     }
   };
 
   const removeTag = (tag: string) => {
-    setEditTags(editTags.filter((t) => t !== tag));
+    snapshot();
+    set((s) => ({ ...s, tags: s.tags.filter((t) => t !== tag) }));
   };
 
+  // Typing updates — no snapshot
+  const updateField = <K extends keyof EditorState>(
+    key: K,
+    value: EditorState[K],
+  ) => set((s) => ({ ...s, [key]: value }));
+
+  const updateIngredient = (
+    index: number,
+    field: keyof Ingredient,
+    value: string,
+  ) =>
+    set((s) => ({
+      ...s,
+      ingredients: s.ingredients.map((ing, i) =>
+        i === index ? { ...ing, [field]: value } : ing,
+      ),
+    }));
+
+  const updateStep = (
+    index: number,
+    field: keyof Step,
+    value: string | number,
+  ) =>
+    set((s) => ({
+      ...s,
+      steps: s.steps.map((step, i) =>
+        i === index ? { ...step, [field]: value } : step,
+      ),
+    }));
+
   const handleSave = async () => {
-    if (!editTitle.trim()) return;
+    if (!ed.title.trim()) return;
     setIsSaving(true);
     try {
       await onSave({
-        title: editTitle,
-        description: editDescription,
-        ingredients: editIngredients.filter((i) => i.name.trim()),
-        steps: editSteps
+        title: ed.title,
+        description: ed.description,
+        ingredients: ed.ingredients.filter((i) => i.name.trim()),
+        steps: ed.steps
           .filter((s) => s.instruction.trim())
           .map((s, i) => ({ ...s, order: i + 1 })),
         meta: {
-          cookTimeMinutes: Math.max(1, parseInt(editCookTime, 10) || 1),
-          servings: Math.max(1, parseInt(editServings, 10) || 1),
-          tags: editTags,
+          cookTimeMinutes: Math.max(1, parseInt(ed.cookTime, 10) || 1),
+          servings: Math.max(1, parseInt(ed.servings, 10) || 1),
+          tags: ed.tags,
           aiGenerated: recipe.meta?.aiGenerated ?? true,
         },
       });
@@ -141,9 +190,27 @@ export function RecipeEditor({
       <View className="flex-1 bg-background">
         <View className="flex-row items-center justify-between border-border border-b px-5 py-4">
           <Text variant="h4">Edit Recipe</Text>
-          <Pressable onPress={onClose} hitSlop={8}>
-            <Icon as={X} className="size-6 text-muted-foreground" />
-          </Pressable>
+          <View className="flex-row items-center gap-3">
+            <Pressable
+              onPress={undo}
+              disabled={!canUndo}
+              hitSlop={8}
+              className={cn(!canUndo && "opacity-30")}
+            >
+              <Icon as={Undo2} className="size-5 text-foreground" />
+            </Pressable>
+            <Pressable
+              onPress={redo}
+              disabled={!canRedo}
+              hitSlop={8}
+              className={cn(!canRedo && "opacity-30")}
+            >
+              <Icon as={Redo2} className="size-5 text-foreground" />
+            </Pressable>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <Icon as={X} className="size-6 text-muted-foreground" />
+            </Pressable>
+          </View>
         </View>
 
         <ScrollView
@@ -158,8 +225,8 @@ export function RecipeEditor({
               Title
             </Text>
             <Input
-              value={editTitle}
-              onChangeText={setEditTitle}
+              value={ed.title}
+              onChangeText={(v) => updateField("title", v)}
               placeholder="Recipe title"
             />
           </View>
@@ -170,8 +237,8 @@ export function RecipeEditor({
               Description
             </Text>
             <TextArea
-              value={editDescription}
-              onChangeText={setEditDescription}
+              value={ed.description}
+              onChangeText={(v) => updateField("description", v)}
               placeholder="Brief description..."
             />
           </View>
@@ -188,8 +255,8 @@ export function RecipeEditor({
               <View className="flex-row items-center gap-2">
                 <Input
                   className="flex-1"
-                  value={editCookTime}
-                  onChangeText={setEditCookTime}
+                  value={ed.cookTime}
+                  onChangeText={(v) => updateField("cookTime", v)}
                   keyboardType="numeric"
                 />
                 <Text variant="muted">min</Text>
@@ -203,8 +270,8 @@ export function RecipeEditor({
                 </Text>
               </View>
               <Input
-                value={editServings}
-                onChangeText={setEditServings}
+                value={ed.servings}
+                onChangeText={(v) => updateField("servings", v)}
                 keyboardType="numeric"
               />
             </View>
@@ -224,7 +291,7 @@ export function RecipeEditor({
                 <Text className="text-primary text-sm">Add</Text>
               </Pressable>
             </View>
-            {editIngredients.map((ing, i) => (
+            {ed.ingredients.map((ing, i) => (
               <View
                 key={ing.name}
                 className="flex-row items-center gap-2 rounded-lg border border-border p-3"
@@ -271,7 +338,7 @@ export function RecipeEditor({
                 <Text className="text-primary text-sm">Add</Text>
               </Pressable>
             </View>
-            {editSteps.map((step, i) => (
+            {ed.steps.map((step, i) => (
               <View
                 key={step.instruction}
                 className="gap-2 rounded-lg border border-border p-3"
@@ -306,7 +373,6 @@ export function RecipeEditor({
                         : ""
                     }
                     onChangeText={(v) => {
-                      // Allow empty and numeric input while typing
                       if (v === "" || /^\d*$/.test(v)) {
                         updateStep(
                           i,
@@ -345,9 +411,9 @@ export function RecipeEditor({
                 <Icon as={Plus} className="size-5 text-primary-foreground" />
               </Button>
             </View>
-            {editTags.length > 0 && (
+            {ed.tags.length > 0 && (
               <View className="flex-row flex-wrap gap-2">
-                {editTags.map((tag) => (
+                {ed.tags.map((tag) => (
                   <View
                     key={tag}
                     className="flex-row items-center gap-1.5 rounded-full bg-primary/10 py-1.5 pr-2 pl-3"
@@ -373,7 +439,7 @@ export function RecipeEditor({
           <Button
             className="h-14"
             onPress={handleSave}
-            disabled={!editTitle.trim() || isSaving}
+            disabled={!ed.title.trim() || isSaving}
           >
             {isSaving ? (
               <Spinner className="text-primary-foreground" />
