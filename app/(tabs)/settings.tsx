@@ -376,16 +376,22 @@ export default function SettingsScreen() {
             </View>
 
             {isPremium ? (
-              <View className="flex-row items-center gap-2">
-                <Icon as={Check} className="size-4 text-green-500" />
-                <Text className="text-muted-foreground">
-                  All AI models unlocked
-                </Text>
+              <View className="gap-2">
+                {[
+                  "All AI models unlocked",
+                  "Multi-image scanning",
+                  "100 generations / month",
+                ].map((feature) => (
+                  <View key={feature} className="flex-row items-center gap-2">
+                    <Icon as={Check} className="size-4 text-green-500" />
+                    <Text className="text-muted-foreground">{feature}</Text>
+                  </View>
+                ))}
               </View>
             ) : (
               <>
                 <Text className="mb-3 text-muted-foreground text-sm">
-                  Unlock premium AI models for better recipes
+                  Unlock premium AI models, multi-image scanning, and more
                 </Text>
                 <Button onPress={handleUpgrade} disabled={isBusy}>
                   {isUpgrading ? (

@@ -1,4 +1,4 @@
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CameraPreviewModal } from "@/components/camera-preview-modal";
 import { ExtractedIngredientsModal } from "@/components/extracted-ingredients-modal";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -36,10 +37,14 @@ export default function HomeScreen() {
     [],
   );
   const [showModal, setShowModal] = useState(false);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [showCameraPreview, setShowCameraPreview] = useState(false);
 
   const { ingredients, add, remove, clear, addMultiple } = useIngredients();
+  const user = useQuery(api.users.currentUser);
   const generateRecipe = useAction(api.recipes.generate);
   const extractIngredients = useAction(api.ai.extractIngredients);
+  const isPremium = user?.isPremium ?? false;
 
   const handleAdd = () => {
     const name = input.trim();
@@ -76,7 +81,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleCamera = async () => {
+  const handleCamera = async (existing: string[] = []) => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
       quality: 0.7,
@@ -84,7 +89,13 @@ export default function HomeScreen() {
     });
 
     if (!result.canceled && result.assets[0].base64) {
-      await processImage(result.assets[0].base64);
+      if (!isPremium) {
+        await processImages([result.assets[0].base64]);
+      } else {
+        const updated = [...existing, result.assets[0].base64];
+        setCapturedImages(updated);
+        setShowCameraPreview(true);
+      }
     }
   };
 
@@ -93,17 +104,22 @@ export default function HomeScreen() {
       mediaTypes: ["images"],
       quality: 0.7,
       base64: true,
+      allowsMultipleSelection: isPremium,
+      selectionLimit: isPremium ? 5 : 1,
     });
 
-    if (!result.canceled && result.assets[0].base64) {
-      await processImage(result.assets[0].base64);
+    if (!result.canceled) {
+      const images = result.assets
+        .map((a) => a.base64)
+        .filter((b): b is string => !!b);
+      if (images.length > 0) await processImages(images);
     }
   };
 
-  const processImage = async (base64: string) => {
+  const processImages = async (images: string[]) => {
     setIsExtracting(true);
     try {
-      const extracted = await extractIngredients({ imageBase64: base64 });
+      const extracted = await extractIngredients({ images });
       setExtractedIngredients(extracted);
       setShowModal(true);
     } catch {
@@ -114,6 +130,18 @@ export default function HomeScreen() {
     } finally {
       setIsExtracting(false);
     }
+  };
+
+  const handleExtractCaptured = async () => {
+    setShowCameraPreview(false);
+    const images = capturedImages;
+    setCapturedImages([]);
+    await processImages(images);
+  };
+
+  const discardCaptured = () => {
+    setShowCameraPreview(false);
+    setCapturedImages([]);
   };
 
   const handleAddExtracted = (selected: string[]) => {
@@ -160,7 +188,7 @@ export default function HomeScreen() {
         {/* Scan Buttons */}
         <View className="mt-3 flex-row gap-2">
           <Pressable
-            onPress={handleCamera}
+            onPress={() => handleCamera()}
             disabled={isBusy}
             className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card"
             style={{ opacity: isBusy ? 0.5 : 1 }}
@@ -299,6 +327,17 @@ export default function HomeScreen() {
         onClose={() => setShowModal(false)}
         ingredients={extractedIngredients}
         onAdd={handleAddExtracted}
+      />
+
+      <CameraPreviewModal
+        visible={showCameraPreview}
+        images={capturedImages}
+        onTakeAnother={() => {
+          setShowCameraPreview(false);
+          handleCamera(capturedImages);
+        }}
+        onExtract={handleExtractCaptured}
+        onDiscard={discardCaptured}
       />
     </View>
   );

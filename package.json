@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "mprocs",
     "dev:expo": "expo start -c",
-    "dev:db": "bunx --bun convex dev",
+    "dev:db": "bunx convex dev",
     "lint": "biome check --write --unsafe",
     "clean": "rm -rf .expo node_modules"
   },
@@ -47,7 +47,7 @@
     "ai": "^6.0.49",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "convex": "^1.31.6",
+    "convex": "^1.31.7",
     "expo": "~54.0.33",
     "expo-auth-session": "^7.0.10",
     "expo-constants": "~18.0.13",

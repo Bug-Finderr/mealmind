@@ -34,15 +34,15 @@ async function resolveModel(
 }
 
 export const extractIngredients = action({
-  args: { imageBase64: v.string() },
-  handler: async (ctx, { imageBase64 }) => {
+  args: { images: v.array(v.string()) },
+  handler: async (ctx, { images }) => {
     const userId = await getAuthUserId(ctx);
     const model = await resolveModel(ctx, userId, "imageAnalysisModel");
 
     const schema = z.object({
       ingredients: z
         .array(z.string())
-        .describe("List of ingredient names found in the image"),
+        .describe("List of ingredient names found in the images"),
     });
 
     const { output } = await generateText({
@@ -51,10 +51,10 @@ export const extractIngredients = action({
         {
           role: "user",
           content: [
-            { type: "image", image: imageBase64 },
+            ...images.map((image) => ({ type: "image" as const, image })),
             {
               type: "text",
-              text: "Identify all food ingredients visible in this image. Return only the ingredient names (e.g., 'chicken breast', 'tomatoes', 'olive oil'). Be specific but concise. If you see packaged items, identify what's inside.",
+              text: "Identify all food ingredients visible in these images. Return only the ingredient names (e.g., 'chicken breast', 'tomatoes', 'olive oil'). Be specific but concise. Deduplicate across images. If you see packaged items, identify what's inside.",
             },
           ],
         },
